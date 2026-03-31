@@ -1828,7 +1828,7 @@ export default function App() {
             <img 
               src="/logo.png" 
               alt="Vintage Spirits Logo" 
-              className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+              className="w-full h-full object-contain relative z-10"
               referrerPolicy="no-referrer"
             />
           </div>
