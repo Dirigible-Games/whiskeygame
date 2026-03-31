@@ -22,7 +22,6 @@ export const BottleImage: React.FC<BottleImageProps> = ({ brand, bottle }) => {
 
   const renderShape = () => {
     const brandName = brand.name || 'Whiskey';
-    const firstWord = brandName.split(' ')[0];
     const clipId = `clip-${bottle.id.replace(/[^a-zA-Z0-9]/g, '')}`;
     
     const fontMap: Record<string, string> = {
@@ -37,6 +36,13 @@ export const BottleImage: React.FC<BottleImageProps> = ({ brand, bottle }) => {
       const lineWidth = width * 0.5;
       const lineX1 = x + (width - lineWidth) / 2;
       const lineX2 = lineX1 + lineWidth;
+      
+      // Calculate dynamic font size based on brand name length and label width
+      const maxFontSize = 7;
+      const padding = 6; // 3 units on each side
+      const availableWidth = width - padding;
+      // Approximate character width is ~0.55 of font size
+      const calculatedFontSize = Math.min(maxFontSize, availableWidth / (brandName.length * 0.55));
       
       return (
         <g>
@@ -56,11 +62,11 @@ export const BottleImage: React.FC<BottleImageProps> = ({ brand, bottle }) => {
             textAnchor="middle" 
             dominantBaseline="middle" 
             fill="white" 
-            fontSize="7" 
+            fontSize={calculatedFontSize} 
             className={fontMap[labelFont || 'classic']}
             style={{ textShadow: '0.6px 0.6px 0px rgba(0,0,0,0.8)' }}
           >
-            {firstWord}
+            {brandName}
           </text>
 
           {/* Bottom Decorative Lines */}
