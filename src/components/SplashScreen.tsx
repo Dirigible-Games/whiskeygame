@@ -29,8 +29,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         className="flex flex-col items-center gap-6"
       >
         {/* Company Logo Placeholder */}
-        <div className="relative w-32 h-32 flex items-center justify-center">
-         <img src="/dgames_splash.png" alt="Logo" className="w-full h-full object-contain" />
+        <div className="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center">
+         <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
         </div>
       </motion.div>
     </motion.div>

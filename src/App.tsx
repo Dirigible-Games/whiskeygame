@@ -1818,17 +1818,13 @@ export default function App() {
           {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         </AnimatePresence>
         <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        {/* Background Glow */}
-        <div className="absolute inset-0 bg-radial-gradient from-whiskey-gold/10 to-transparent opacity-50" />
-        
         {/* Placeholder Logo */}
         <motion.div 
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="relative z-10 mb-6 text-center"
         >
-          <div className="w-32 h-32 mx-auto mb-4 relative">
-            <div className="absolute inset-0 bg-whiskey-gold/20 blur-2xl rounded-full" />
+          <div className="w-64 h-64 sm:w-80 sm:h-80 mx-auto mb-4 relative">
             <img 
               src="/logo.png" 
               alt="Vintage Spirits Logo" 
@@ -2034,51 +2030,43 @@ export default function App() {
       </AnimatePresence>
       <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans pb-12">
       {/* Header */}
-      <header className="bg-whiskey-medium text-white py-1 px-2 sm:px-4 h-auto min-h-[40px] shadow-2xl sticky top-0 z-50 border-b border-whiskey-light">
-        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 shrink-0">
-              <img 
-                src="/logo.png" 
-                alt="Logo" 
-                className="w-full h-full object-contain drop-shadow-[0_0_5px_rgba(212,175,55,0.4)]"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+      <header className="bg-whiskey-medium text-white py-2 px-3 sm:px-6 h-auto min-h-[48px] shadow-2xl sticky top-0 z-50 border-b border-whiskey-light">
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-y-2">
+          <div className="flex items-center gap-3">
             <div className="min-w-0">
-              <h1 className="text-[10px] sm:text-xs font-black tracking-tighter uppercase leading-none text-whiskey-gold truncate max-w-[100px] sm:max-w-none">{gameState.shopName}</h1>
-              <p className="text-[7px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">Day {gameState.day}</p>
+              <h1 className="text-xs sm:text-sm font-black tracking-tighter uppercase leading-none text-whiskey-gold truncate max-w-[120px] sm:max-w-none">{gameState.shopName}</h1>
+              <p className="text-[9px] sm:text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-1">Day {gameState.day}</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2.5 sm:gap-4 text-right ml-auto">
+          <div className="flex items-center gap-4 sm:gap-8 text-right ml-auto">
             <div className="flex flex-col">
-              <p className="text-[6px] font-bold text-stone-400 uppercase leading-none mb-0.5">Rep</p>
-              <p className={`text-[10px] font-black ${gameState.reputation >= 0 ? 'text-whiskey-gold' : 'text-red-500'}`}>{gameState.reputation}%</p>
+              <p className="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase leading-none mb-1">Rep</p>
+              <p className={`text-xs sm:text-sm font-black ${gameState.reputation >= 0 ? 'text-whiskey-gold' : 'text-red-500'}`}>{gameState.reputation}%</p>
             </div>
             <div className="flex flex-col">
-              <p className="text-[6px] font-bold text-stone-400 uppercase leading-none mb-0.5">Inv</p>
-              <p className="text-[10px] font-black text-whiskey-gold">
-                {gameState.inventory.length}<span className="text-stone-500 text-[8px]">/{currentTier.inventoryLimit}</span>
+              <p className="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase leading-none mb-1">Inv</p>
+              <p className="text-xs sm:text-sm font-black text-whiskey-gold">
+                {gameState.inventory.length}<span className="text-stone-500 text-[10px] sm:text-xs">/{currentTier.inventoryLimit}</span>
               </p>
             </div>
             <div className="flex flex-col">
-              <p className={`text-[6px] font-bold uppercase leading-none mb-0.5 ${gameState.rentOwed > 0 ? (gameState.day % 7 === 0 ? 'text-whiskey-gold' : 'text-red-400') : 'text-stone-400'}`}>
+              <p className={`text-[8px] sm:text-[9px] font-bold uppercase leading-none mb-1 ${gameState.rentOwed > 0 ? (gameState.day % 7 === 0 ? 'text-whiskey-gold' : 'text-red-400') : 'text-stone-400'}`}>
                 {gameState.rentOwed > 0 && gameState.day % 7 !== 0 ? 'Overdue' : 'Rent'} <span className="hidden sm:inline">Due (D{Math.ceil(gameState.day / 7) * 7})</span><span className="sm:hidden">D{Math.ceil(gameState.day / 7) * 7}</span>
               </p>
-              <p className={`text-[10px] font-black ${gameState.rentOwed > 0 ? (gameState.day % 7 === 0 ? 'text-whiskey-gold' : 'text-red-400') : 'text-stone-300'}`}>
+              <p className={`text-xs sm:text-sm font-black ${gameState.rentOwed > 0 ? (gameState.day % 7 === 0 ? 'text-whiskey-gold' : 'text-red-400') : 'text-stone-300'}`}>
                 ${(gameState.rentOwed > 0 ? gameState.rentOwed : currentTier.rent).toLocaleString()}
               </p>
             </div>
             <div className="flex flex-col">
-              <p className="text-[6px] font-bold text-stone-400 uppercase leading-none mb-0.5">Balance</p>
-              <p className="text-[10px] font-black text-whiskey-money">${gameState.money.toLocaleString()}</p>
+              <p className="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase leading-none mb-1">Balance</p>
+              <p className="text-xs sm:text-sm font-black text-whiskey-money">${gameState.money.toLocaleString()}</p>
             </div>
             <button 
               onClick={() => setIsOptionsOpen(true)}
-              className="p-1.5 bg-whiskey-dark border border-whiskey-light rounded-lg text-whiskey-gold hover:bg-black transition-all shrink-0"
+              className="p-2 bg-whiskey-dark border border-whiskey-light rounded-lg text-whiskey-gold hover:bg-black transition-all shrink-0 ml-2"
             >
-              <SettingsIcon size={14} />
+              <SettingsIcon size={16} />
             </button>
           </div>
         </div>
