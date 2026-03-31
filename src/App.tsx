@@ -11,6 +11,7 @@ import { BottleCard } from './components/BottleCard';
 import { ShopIllustration } from './components/ShopIllustration';
 import { StoreInterior } from './components/StoreInterior';
 import { ContextualTutorial } from './components/ContextualTutorial';
+import { SplashScreen } from './components/SplashScreen';
 import { soundSystem } from './SoundSystem';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, BookOpen, Sparkles, RefreshCw, Trash2, Wallet, Calendar, User, MessageSquare, Check, X, Send, Package, TrendingUp, ArrowUpCircle, Settings as SettingsIcon, Save, Play, Plus, Minus, LogOut, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, ChevronLeft, Wrench, AlertTriangle } from 'lucide-react';
@@ -274,6 +275,7 @@ export default function App() {
   const [selectedCodexDistillery, setSelectedCodexDistillery] = useState<ParentDistillery | null>(null);
   const [selectedCodexBrand, setSelectedCodexBrand] = useState<Brand | null>(null);
   const [view, setView] = useState<'main-menu' | 'inventory' | 'codex' | 'shop' | 'skills' | 'expansion' | 'tools'>('main-menu');
+  const [showSplash, setShowSplash] = useState(true);
   const [isSelectingAuctionBottles, setIsSelectingAuctionBottles] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -1811,7 +1813,11 @@ export default function App() {
 
   if (view === 'main-menu') {
     return (
-      <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <>
+        <AnimatePresence>
+          {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        </AnimatePresence>
+        <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Background Glow */}
         <div className="absolute inset-0 bg-radial-gradient from-whiskey-gold/10 to-transparent opacity-50" />
         
@@ -1970,12 +1976,17 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+      </>
     );
   }
 
   if (gameState.isGameOver) {
     return (
-      <div className="min-h-screen bg-whiskey-dark flex items-center justify-center p-6">
+      <>
+        <AnimatePresence>
+          {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        </AnimatePresence>
+        <div className="min-h-screen bg-whiskey-dark flex items-center justify-center p-6">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -2012,11 +2023,16 @@ export default function App() {
           </div>
         </motion.div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans pb-12">
+    <>
+      <AnimatePresence>
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      </AnimatePresence>
+      <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans pb-12">
       {/* Header */}
       <header className="bg-whiskey-medium text-white py-1 px-2 sm:px-4 h-auto min-h-[40px] shadow-2xl sticky top-0 z-50 border-b border-whiskey-light">
         <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-y-1">
@@ -3465,6 +3481,7 @@ export default function App() {
         onNext={handleTutorialNext} 
       />
     </div>
+    </>
   );
 }
 
