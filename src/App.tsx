@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { WhiskeyEngine, NEGOTIATION_TACTICS, CURRENT_YEAR } from './engine';
+import { WhiskeyEngine, CURRENT_YEAR } from './engine';
+import { NEGOTIATION_TACTICS } from './data/tactics';
 import { Bottle, GameState, NegotiationState, Customer, CustomerPersonality, NegotiationPhase, Message, DialogueOption, Rarity, SaveSlot, Settings, WhiskeyType, TransactionRecord, Tactic, SkillInfo, Brand, ParentDistillery, AuctionState, AuctionBidEvent, DistilleryCategory, ReleaseType, DistilleryCodexEntry, ProductLineKnowledge, BrandKnowledge, CodexState, DailyStats } from './types';
 import { BottleCard } from './components/BottleCard';
 import { ShopIllustration } from './components/ShopIllustration';
@@ -959,7 +960,18 @@ export default function App() {
     setIsInspecting(false);
     if (!negotiation) return;
 
-    const newlyRevealed = inspectionResults.filter(f => !(preInspectionRevealedFields || []).includes(f));
+    const newlyRevealed = inspectionResults.filter(f => {
+      const prevRevealed = preInspectionRevealedFields || [];
+      if (prevRevealed.includes(f)) return false;
+      if (f.startsWith('modifiers_')) {
+        const idx = parseInt(f.split('_')[1]);
+        const modValue = negotiation.bottle.modifiers[idx];
+        if (prevRevealed.includes('modifiers') || (modValue && prevRevealed.includes(modValue))) {
+          return false;
+        }
+      }
+      return true;
+    });
     
     const fieldNames: Record<string, string> = {
       'year': 'Year',
@@ -1114,7 +1126,11 @@ export default function App() {
       : (negotiation.bottle.discoveredFields || []);
 
     const wasYearKnown = discoveredFields.includes('year');
-    const revealedModifiers = negotiation.bottle.modifiers.filter(m => discoveredFields.includes(m));
+    const revealedModifiers = negotiation.bottle.modifiers.filter((m, idx) => 
+      discoveredFields.includes(m) || 
+      discoveredFields.includes('modifiers') || 
+      discoveredFields.includes(`modifiers_${idx}`)
+    );
 
     const brand = engine.getBrand(negotiation.bottle.brandId);
     const brandName = brand ? brand.name : negotiation.bottle.name.split(' ').slice(1, -1).join(' ');

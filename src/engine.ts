@@ -18,187 +18,20 @@ import {
   NegotiationState,
   NegotiationPhase,
   Message,
-  DialogueOption,
   ToolkitItem,
-  Tactic
+  DialogueOption
 } from './types';
+import { MIDDLE_INITIALS, REGIONAL_NAMES, REGION_TYPE_MAP } from './data/names';
+
+import { CUSTOMER_NAMES, CUSTOMER_PERSONALITY_WEIGHTS } from './data/customers';
+import { DIALOGUE_RESPONSES, TACTIC_RESPONSES } from './data/dialogue';
+import { DIALOGUE_OPTIONS } from './data/dialogueOptions';
+import { DEAL_TEXTS, WALK_AWAY_TEXTS, COUNTER_TEXTS_FAR, COUNTER_TEXTS_CLOSE } from './data/negotiationTexts';
+import { RARITY_MULTIPLIERS, RARITY_PRESTIGE_FACTORS, RARITY_ORDER, AGE_RANGES, PROOF_RANGES } from './data/bottleData';
+import { BOTTLE_SHAPES, LABEL_FONTS, CAP_TYPES, MODIFIERS } from './data/brandData';
+import { NEGOTIATION_TACTICS } from './data/tactics';
 
 export const CURRENT_YEAR = 2026;
-
-export const NEGOTIATION_TACTICS: Tactic[] = [
-  {
-    id: 'sample',
-    name: 'Offer a Sample',
-    description: 'Offer a small pour to build hospitality. Increases patience and trust.',
-    minSkill: 0,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 2 
-      ? (isPlayerBuying ? "Uh, would you mind if I had a tiny sip of this? I want to be sure." : "Uh, would you like a tiny sip of this? I think it's supposed to be pretty good.")
-      : (isPlayerBuying ? "Before we talk numbers, I'd appreciate a small pour to truly evaluate the complexity of this bottling." : "This particular bottling has a legendary finish. Let's have a small pour so you can truly appreciate the complexity before we talk numbers.")
-  },
-  {
-    id: 'admire',
-    name: 'Admire the Bottle',
-    description: 'Validate the customer\'s taste. Increases trust.',
-    minSkill: 0,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 2
-      ? "That's a really nice looking bottle you have there."
-      : "The presentation on this era of bottling is exquisite. You clearly have a refined eye for quality."
-  },
-  {
-    id: 'fair_shake',
-    name: 'The Fair Shake',
-    description: 'A direct statement of professional integrity. Reduces aggressiveness.',
-    minSkill: 0,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 2
-      ? "I just want to make a deal that's fair, you know?"
-      : "I pride myself on transparency. My goal is a transaction where we both walk away satisfied with the value."
-  },
-  {
-    id: 'ledger',
-    name: 'Consult the Ledger',
-    description: 'Use historical data to anchor the price. Reduces aggressiveness and moves target price.',
-    minSkill: 0,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 2
-      ? "Wait, let me look at my price list... I want to be sure I'm not making a mistake here."
-      : "The recent market data for this distillery is quite specific. Let me pull up my latest records so we can ensure this transaction is accurate to current values."
-  },
-  {
-    id: 'flattery',
-    name: 'Flattery',
-    description: 'Charm the customer with compliments. High trust boost, but can backfire on skeptics.',
-    minSkill: 1,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 3 
-      ? "You look like someone who knows their whiskey!" 
-      : "It's rare to meet someone with such an impeccable sense of timing and taste."
-  },
-  {
-    id: 'market_insight',
-    name: 'Market Insight',
-    description: 'Show off your knowledge of current trends to justify your price.',
-    minSkill: 1,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 3
-      ? "I heard this distillery is getting popular lately."
-      : "Given the recent acquisition of this distillery, the secondary market for these older labels is tightening significantly."
-  },
-  {
-    id: 'shared_passion',
-    name: 'Shared Passion',
-    description: 'Connect over the craft. Massive trust boost for enthusiasts.',
-    minSkill: 2,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 4
-      ? "I really love the way they make this one."
-      : "I can tell you really appreciate the craft. This distillery uses a very specific char on their barrels that creates that unique profile..."
-  },
-  {
-    id: 'point_out_flaws',
-    name: 'Point Out Flaws',
-    description: 'Highlight minor issues to lower their price or justify yours. Hurts patience.',
-    minSkill: 2,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 4
-      ? "The label is a bit scuffed up, don't you think?"
-      : "While the liquid is pristine, the slight oxidation on the capsule is a factor we must consider in the final valuation."
-  },
-  {
-    id: 'long_game',
-    name: 'The Long Game',
-    description: 'Show you are in no rush. Maxes out patience.',
-    minSkill: 3,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
-      ? "I'm in no hurry, take your time."
-      : (isPlayerBuying ? "Take your time, I'm in no rush to acquire this. Quality like this deserves careful consideration." : "Take your time, I'm in no rush to see this leave the shelf. Quality like this deserves careful consideration.")
-  },
-  {
-    id: 'scarcity',
-    name: 'Scarcity Play',
-    description: 'Create urgency. Increases walk-away chance but can force a quick deal.',
-    minSkill: 3,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
-      ? (isPlayerBuying ? "I've seen a few of these around lately." : "I have another guy interested in this one.")
-      : (isPlayerBuying ? "I should mention I've seen several of these specific bottlings at auction recently. It's not as rare as it once was." : "I should mention I've had several inquiries about this specific bottling this morning. It likely won't be here by closing.")
-  },
-  {
-    id: 'guarantee',
-    name: 'Personal Guarantee',
-    description: 'Stake your reputation. High success rate if price is reasonable.',
-    minSkill: 4,
-    category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => isPlayerBuying ? "I stand behind my offers. You won't find a better, more honest valuation anywhere else." : "I stand behind every bottle in this shop. You have my word on its provenance and quality."
-  },
-  {
-    id: 'the_walk_away',
-    name: 'The Walk Away',
-    description: 'The ultimate power move. High risk, high reward price shift.',
-    minSkill: 4,
-    category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
-      ? "Maybe we just can't make a deal today."
-      : "It seems we are at an impasse. I've given my best offer; perhaps this isn't the right time for this particular transaction."
-  }
-];
-
-const MIDDLE_INITIALS = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.', 'G.', 'H.', 'I.', 'J.', 'K.', 'L.', 'M.', 'N.', 'O.', 'P.', 'Q.', 'R.', 'S.', 'T.', 'U.', 'V.', 'W.', 'X.', 'Y.', 'Z.'];
-
-const REGIONAL_NAMES: Record<Region, {
-  prefixes: string[];
-  suffixes: string[];
-  firstNames: string[];
-  lastNames: string[];
-  places: string[];
-}> = {
-  [Region.USA]: {
-    prefixes: ['Old', 'Colonel', 'Rebel', 'Frontier', 'Pioneer', 'Eagle', 'Copper', 'Iron', 'Wild', 'Grand', 'Southern', 'Mountain', 'Straight', 'Honest', 'Noble', 'Rustic', 'Vintage', 'Heritage', 'Liberty', 'Patriot', 'Canyon', 'Prairie', 'Valley', 'Timber'],
-    suffixes: ['Reserve', 'Cask', 'Barrel', 'Springs', 'Creek', 'Ridge', 'Run', 'Branch', 'Hollow', 'Estate', 'Select', 'Batch', 'Trace', 'Hill', 'Wood', 'Blend', 'Spirits', 'Bourbon', 'Rye', 'Mash', 'Proof', 'Char', 'Oak'],
-    firstNames: ['George', 'Henry', 'Jacob', 'James', 'John', 'Joseph', 'William', 'Thomas', 'J.', 'W.', 'E.', 'A.', 'C.', 'Arthur', 'Charles', 'Edward', 'Frank', 'Harry', 'Oliver', 'Samuel', 'Walter', 'Albert', 'David', 'Martin', 'Robert'],
-    lastNames: ['Smith', 'Johnson', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia', 'Rodriguez', 'Wilson', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Hernandez', 'Moore', 'Martin', 'Jackson', 'Thompson', 'White', 'Lopez', 'Lee', 'Gonzalez', 'Harris', 'Clark', 'Lewis'],
-    places: ['Kentucky', 'Tennessee', 'Bluegrass', 'Limestone', 'Licking', 'Elkhorn', 'Appalachia', 'Cumberland', 'Smoky', 'Shenandoah', 'Ozark', 'Mississippi', 'Ohio', 'Bourbon County', 'Nelson County', 'Franklin', 'Anderson', 'Marion', 'Mercer']
-  },
-  [Region.SCOTLAND]: {
-    prefixes: ['Glen', 'Ben', 'Mac', 'Loch', 'Strath', 'Aber', 'Craig', 'Inver', 'Royal', 'Highland', 'Isle of', 'The', 'Auld', 'Dun', 'Kil', 'Bal', 'Dal', 'Kin', 'Auch', 'Brae', 'Cairn', 'Drum', 'Fetter', 'Tull'],
-    suffixes: ['Wood', 'Reserve', 'Malt', 'Cask', 'Blend', 'Spirits', 'Water', 'Burn', 'Firth', 'Moor', 'Glen', 'Loch', 'Ben', 'Strath', 'Aber', 'Craig', 'Inver', 'Port', 'Dun', 'Kil', 'Bal', 'Dal', 'Kin', 'Auch'],
-    firstNames: ['Angus', 'Hamish', 'Malcolm', 'Alistair', 'Callum', 'Ewan', 'Finlay', 'Gavin', 'Ian', 'Lachlan', 'Aodh', 'Baird', 'Blair', 'Brodie', 'Bruce', 'Cameron', 'Colin', 'Cormac', 'Craig', 'Crawford', 'Douglas', 'Fergus', 'Fletcher', 'Forbes', 'Fraser', 'Gordon', 'Graham', 'Grant', 'Gregor', 'Iain', 'Innes', 'Irvine', 'Keith', 'Kenneth', 'Lennox', 'Logan', 'Magnus', 'Munro', 'Murdo', 'Niall', 'Ramsay', 'Rory', 'Ross', 'Ruairidh', 'Sinclair', 'Stuart', 'Tavish', 'Wallace'],
-    lastNames: ['Campbell', 'Stewart', 'MacDonald', 'Fraser', 'Graham', 'MacLeod', 'MacFarlane', 'MacKenzie', 'MacKay', 'MacLean', 'MacIntosh', 'MacGregor', 'MacMillan', 'MacPherson', 'MacAlister', 'MacDougall', 'MacNab', 'MacAulay', 'MacKinnon', 'MacLaren', 'MacRae', 'MacNeil', 'MacEwan', 'MacIver', 'MacInnes', 'Buchanan', 'Munro', 'Wallace', 'Bruce', 'Sinclair'],
-    places: ['Highland', 'Lowland', 'Speyside', 'Islay', 'Campbeltown', 'Skye', 'Orkney', 'Jura', 'Arran', 'Fife', 'Lothian', 'Clyde', 'Tweed', 'Tay', 'Forth', 'Dee', 'Don', 'Spey', 'Findhorn', 'Lossie', 'Deveron', 'Ythan', 'Ugie', 'Ness', 'Beauly']
-  },
-  [Region.IRELAND]: {
-    prefixes: ['Bally', 'Kil', 'Dun', 'Knock', 'Carrick', 'Old', 'The', 'Celtic', 'Emerald', 'Shamrock', 'Wild', 'Green', 'Saint', 'Gaelic', 'Clover', 'Leprechaun', 'Blarney', 'Tara', 'Boyne', 'Shannon', 'Liffey', 'Corrib', 'Erne', 'Foyle'],
-    suffixes: ['Dew', 'Cask', 'Still', 'Reserve', 'Estate', 'Valley', 'Stream', 'Mill', 'Bridge', 'Cross', 'Point', 'Meadow', 'Isle', 'Castle', 'Grange', 'Blend', 'Spirits', 'Malt', 'Pot Still', 'Grain', 'Oak', 'Wood', 'Char'],
-    firstNames: ['Patrick', 'Michael', 'Sean', 'Liam', 'Conor', 'Declan', 'Aidan', 'Brendan', 'Cian', 'Darragh', 'Eoin', 'Fionn', 'Oisin', 'Ronan', 'Cillian', 'Cathal', 'Cormac', 'Daithi', 'Dermot', 'Donal', 'Eamon', 'Enda', 'Fergal', 'Finbar', 'Garret', 'Kieran', 'Lorcan', 'Niall', 'Odhran', 'Padraig', 'Peadar', 'Rian', 'Ruairi', 'Tadhg', 'Tiernan'],
-    lastNames: ['Murphy', 'Kelly', 'O\'Sullivan', 'Walsh', 'O\'Brien', 'Byrne', 'Ryan', 'Connor', 'O\'Neill', 'O\'Reilly', 'Doyle', 'McCarthy', 'Gallagher', 'Doherty', 'Lynch', 'Quinn', 'McLoughlin', 'Connolly', 'Healy', 'Fitzgerald', 'Kavanagh', 'Maguire', 'O\'Donnell', 'O\'Keeffe', 'O\'Mahony', 'O\'Rourke', 'Sweeney'],
-    places: ['Dublin', 'Cork', 'Galway', 'Belfast', 'Munster', 'Leinster', 'Connacht', 'Ulster', 'Kerry', 'Clare', 'Limerick', 'Tipperary', 'Waterford', 'Wexford', 'Kilkenny', 'Wicklow', 'Kildare', 'Meath', 'Louth', 'Antrim', 'Down', 'Armagh', 'Tyrone', 'Derry', 'Donegal']
-  },
-  [Region.CANADA]: {
-    prefixes: ['Northern', 'Crown', 'Royal', 'Maple', 'Glacier', 'Bear', 'Wolf', 'Moose', 'Great', 'Black', 'True', 'North', 'Ice', 'Snow', 'Winter', 'Polar', 'Arctic', 'Tundra', 'Boreal', 'Pine', 'Cedar', 'Birch', 'Oak', 'Elm'],
-    suffixes: ['Club', 'Mist', 'Peak', 'Lake', 'Valley', 'Crest', 'Ridge', 'Wood', 'Cask', 'Reserve', 'Gold', 'Blend', 'Harvest', 'Shield', 'Spirits', 'Rye', 'Malt', 'Grain', 'Oak', 'Char', 'Barrel', 'Springs'],
-    firstNames: ['Jean', 'Pierre', 'Jacques', 'Michel', 'Claude', 'Gilles', 'Guy', 'Luc', 'Marc', 'Paul', 'René', 'Yves', 'Alain', 'Benoit', 'Denis', 'Éric', 'François', 'Gérard', 'Henri', 'Louis', 'Marcel', 'Normand', 'Pascal', 'Raymond', 'Serge', 'Sylvain', 'Yvon', 'Gaston', 'Maurice', 'Réjean'],
-    lastNames: ['Tremblay', 'Roy', 'Gagnon', 'Bouchard', 'Gauthier', 'Morin', 'Lavoie', 'Fortin', 'Pelletier', 'Bélanger', 'Lefebvre', 'Martel', 'Landry', 'Côté', 'Ouellet', 'Tardif', 'Poirier', 'Desjardins', 'Lapointe', 'Savard', 'Richard', 'Michaud', 'Caron', 'Hébert', 'Poulin'],
-    places: ['Ontario', 'Alberta', 'Quebec', 'Nova Scotia', 'Yukon', 'Rockies', 'Toronto', 'Montreal', 'Vancouver', 'Niagara', 'Banff', 'Jasper', 'Calgary', 'Edmonton', 'Ottawa', 'Winnipeg', 'Halifax', 'Victoria', 'Regina', 'Saskatoon', 'St. John\'s', 'Charlottetown', 'Fredericton', 'Whitehorse', 'Yellowknife']
-  },
-  [Region.JAPAN]: {
-    prefixes: ['Yama', 'Kawa', 'Matsu', 'Take', 'Ume', 'Kiku', 'Sakura', 'Fuji', 'Shin', 'Hon', 'Kura', 'Tsuru', 'Kame', 'Gin', 'Kin', 'Aka', 'Ao', 'Shiro', 'Kuro', 'Midori', 'Ki', 'Murasaki', 'O', 'Ko'],
-    suffixes: ['Zaki', 'Kushu', 'Tori', 'Mura', 'Gawa', 'Yama', 'Kawa', 'Cask', 'Reserve', 'Blend', 'Malt', 'Estate', 'Spirits', 'Oak', 'Wood', 'Barrel', 'Springs', 'Lake', 'Valley', 'Peak', 'Ridge', 'Crest'],
-    firstNames: ['S.', 'M.', 'K.', 'T.', 'Y.', 'H.', 'Kenji', 'Taro', 'Akira', 'Hiroshi', 'Ichiro', 'Jiro', 'Saburo', 'Shiro', 'Goro', 'Rokuro', 'Shichiro', 'Hachiro', 'Kuro', 'Juro', 'Yuki', 'Haru', 'Natsu', 'Aki', 'Fuyu'],
-    lastNames: ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Watanabe', 'Ito', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada', 'Sasaki', 'Yamaguchi', 'Saito', 'Matsumoto', 'Inoue', 'Kimura', 'Hayashi', 'Shimizu', 'Yamazaki', 'Mori', 'Abe', 'Ikeda', 'Hashimoto'],
-    places: ['Kyoto', 'Hokkaido', 'Osaka', 'Tokyo', 'Sendai', 'Honshu', 'Kyushu', 'Shikoku', 'Okinawa', 'Sapporo', 'Fukuoka', 'Kobe', 'Nagoya', 'Yokohama', 'Hiroshima', 'Nagasaki', 'Kanazawa', 'Nara', 'Kamakura', 'Nikko', 'Hakone', 'Fuji', 'Aso', 'Biwa', 'Seto']
-  }
-};
-
-const REGION_TYPE_MAP: Record<Region, WhiskeyType[]> = {
-  [Region.USA]: [WhiskeyType.BOURBON, WhiskeyType.RYE],
-  [Region.CANADA]: [WhiskeyType.CANADIAN_WHISKY],
-  [Region.SCOTLAND]: [WhiskeyType.SINGLE_MALT_SCOTCH],
-  [Region.IRELAND]: [WhiskeyType.IRISH_WHISKEY],
-  [Region.JAPAN]: [WhiskeyType.JAPANESE_WHISKY],
-};
 
 export function getAgeDisplay(bottle: { age: number, region: Region, modifiers: string[] }): string {
   if (bottle.region === Region.USA) {
@@ -558,11 +391,11 @@ export class WhiskeyEngine {
       name: brandName,
       startYear,
       endYear,
-      bottleShape: ['flask', 'round', 'square', 'tall', 'decanter', 'jug', 'bell'][Math.floor(Math.random() * 7)],
+      bottleShape: BOTTLE_SHAPES[Math.floor(Math.random() * BOTTLE_SHAPES.length)],
       labelColor: `hsl(${Math.random() * 360}, 30%, 40%)`,
       capColor: `hsl(${Math.random() * 360}, 20%, 20%)`,
-      labelFont: ['modern', 'classic', 'vintage', 'technical', 'bold'][Math.floor(Math.random() * 5)],
-      capType: ['screw', 'cork', 'wax', 'glass'][Math.floor(Math.random() * 4)],
+      labelFont: LABEL_FONTS[Math.floor(Math.random() * LABEL_FONTS.length)],
+      capType: CAP_TYPES[Math.floor(Math.random() * CAP_TYPES.length)],
       region: distillery.region,
       prestige: Math.floor(Math.random() * 5) + 1,
     };
@@ -628,49 +461,37 @@ export class WhiskeyEngine {
   }
 
   private getAgeRange(type: WhiskeyType) {
-    switch (type) {
-      case WhiskeyType.SINGLE_MALT_SCOTCH: return { min: 3, max: 50 };
-      case WhiskeyType.IRISH_WHISKEY: return { min: 3, max: 30 };
-      case WhiskeyType.JAPANESE_WHISKY: return { min: 3, max: 40 };
-      case WhiskeyType.CANADIAN_WHISKY: return { min: 3, max: 25 };
-      default: return { min: 2, max: 23 };
-    }
+    return AGE_RANGES[type] || { min: 2, max: 23 };
   }
 
   private getProofRange(type: WhiskeyType) {
-    switch (type) {
-      case WhiskeyType.SINGLE_MALT_SCOTCH: return { min: 80, max: 130 };
-      case WhiskeyType.IRISH_WHISKEY: return { min: 80, max: 120 };
-      case WhiskeyType.JAPANESE_WHISKY: return { min: 80, max: 125 };
-      case WhiskeyType.CANADIAN_WHISKY: return { min: 80, max: 110 };
-      default: return { min: 80, max: 140 };
-    }
+    return PROOF_RANGES[type] || { min: 80, max: 140 };
   }
 
   private getPossibleModifiers(type: WhiskeyType, age: number, proof: number, region: Region): string[] {
     let mods: string[] = ['Special Release', 'Quarterly Release'];
 
     if (type === WhiskeyType.SINGLE_MALT_SCOTCH) {
-      mods.push('Peated', 'Sherry Matured', 'Port Finish', 'Cask Strength');
+      mods.push(...MODIFIERS.SCOTCH);
       return mods;
     }
 
     if (type === WhiskeyType.IRISH_WHISKEY) {
-      mods.push('3x Distilled', 'Pot Still', 'Small Batch');
+      mods.push(...MODIFIERS.IRISH);
       return mods;
     }
 
     if (type === WhiskeyType.JAPANESE_WHISKY) {
-      mods.push('Mizunara Cask', 'Double Matured', 'Small Batch');
+      mods.push(...MODIFIERS.JAPANESE);
       return mods;
     }
 
     if (type === WhiskeyType.CANADIAN_WHISKY) {
-      mods.push('Blended', 'Small Batch', 'Limited Edition');
+      mods.push(...MODIFIERS.CANADIAN);
       return mods;
     }
 
-    mods = [...mods, 'Double Oaked', 'Cognac Finish', 'Sherry Finish', 'Rum Finish', 'Stout Finish', 'IPA Finish', 'Merlot Finish'];
+    mods = [...mods, ...MODIFIERS.GENERAL_FINISHES];
 
     if (age >= 4) mods.push('SiB');
     if (proof > 110) mods.push('Full Proof');
@@ -718,8 +539,7 @@ export class WhiskeyEngine {
   ): Rarity {
     // Base roll
     let rarity = weights ? this.weightedRarity(weights) : this.randomRarity();
-    const rarityOrder = [Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY, Rarity.UNICORN];
-    const getRank = (r: Rarity) => rarityOrder.indexOf(r);
+    const getRank = (r: Rarity) => RARITY_ORDER.indexOf(r);
     
     let bonusScore = 0;
 
@@ -780,9 +600,9 @@ export class WhiskeyEngine {
     let currentRank = getRank(rarity);
     // Cap rank bump based on shop level to prevent extreme outliers in early game
     const maxRankBump = shopLevel <= 1 ? 1 : shopLevel <= 3 ? 2 : 5;
-    currentRank = Math.min(rarityOrder.length - 1, currentRank + Math.min(rankBump, maxRankBump));
+    currentRank = Math.min(RARITY_ORDER.length - 1, currentRank + Math.min(rankBump, maxRankBump));
     
-    return rarityOrder[currentRank];
+    return RARITY_ORDER[currentRank];
   }
 
   public calculateApparentValue(bottle: Bottle, discoveredFields: string[]): number {
@@ -793,7 +613,11 @@ export class WhiskeyEngine {
     const rarity = discoveredFields.includes('rarity') ? bottle.rarity : Rarity.COMMON;
     
     // Modifiers are only used if discovered
-    const revealedModifiers = bottle.modifiers.filter((_, i) => discoveredFields.includes(`modifiers_${i}`));
+    const revealedModifiers = bottle.modifiers.filter((m, i) => 
+      discoveredFields.includes(`modifiers_${i}`) || 
+      discoveredFields.includes('modifiers') || 
+      discoveredFields.includes(m)
+    );
 
     // Year, Age, Proof are also in discoveredFields
     const year = discoveredFields.includes('year') ? bottle.year : CURRENT_YEAR;
@@ -832,26 +656,10 @@ export class WhiskeyEngine {
 
     base += (proof - 80) * 1.5;
     
-    const rarityMultipliers = {
-      [Rarity.COMMON]: 1,
-      [Rarity.UNCOMMON]: 1.5,
-      [Rarity.RARE]: 3,
-      [Rarity.EPIC]: 8,
-      [Rarity.LEGENDARY]: 20,
-      [Rarity.UNICORN]: 50,
-    };
-
-    let value = base * rarityMultipliers[rarity];
+    let value = base * RARITY_MULTIPLIERS[rarity];
 
     // Prestige Impact
-    const rarityFactor = {
-      [Rarity.COMMON]: 0.1,
-      [Rarity.UNCOMMON]: 0.2,
-      [Rarity.RARE]: 0.4,
-      [Rarity.EPIC]: 0.6,
-      [Rarity.LEGENDARY]: 0.8,
-      [Rarity.UNICORN]: 1.0,
-    }[rarity];
+    const rarityFactor = RARITY_PRESTIGE_FACTORS[rarity];
 
     // Distillery prestige (1-5) adds up to 40% value at Unicorn rarity
     const distilleryEffect = (distilleryPrestige - 1) * 0.1 * rarityFactor;
@@ -886,22 +694,7 @@ export class WhiskeyEngine {
   }
 
   public generateCustomer(shopLevel: number = 1, reputation: number = 0): Customer {
-    const names = ['Arthur', 'Beatrice', 'Charles', 'Dorothy', 'Edward', 'Florence', 'George', 'Helen', 'Isaac', 'Julia', 'Kevin', 'Linda', 'Michael', 'Nora', 'Oscar', 'Patricia', 'Quincy', 'Rachel', 'Samuel', 'Theresa'];
-    
-    // Personality weights based on shop level and reputation
-    // Early levels: More Novices, Desperate, and Bargain Hunters
-    // Late levels: More Experts, Collectors, and Greedy sellers
-    // High reputation: More Collectors and Experts, fewer Novices and Bargain Hunters
-    const weights: Record<CustomerPersonality, number> = {
-      [CustomerPersonality.NOVICE]: Math.max(5, 40 - (shopLevel * 5) - (reputation / 4)),
-      [CustomerPersonality.DESPERATE]: Math.max(5, 30 - (shopLevel * 4)),
-      [CustomerPersonality.BARGAIN_HUNTER]: Math.max(2, 25 - (reputation / 6)),
-      [CustomerPersonality.EASYGOING]: 20,
-      [CustomerPersonality.SKEPTIC]: 10 + (shopLevel * 2),
-      [CustomerPersonality.GREEDY]: 5 + (shopLevel * 4),
-      [CustomerPersonality.EXPERT]: 2 + (shopLevel * 6) + (reputation / 8),
-      [CustomerPersonality.COLLECTOR]: 1 + (shopLevel * 5) + (reputation / 5),
-    };
+    const weights = CUSTOMER_PERSONALITY_WEIGHTS(shopLevel, reputation);
 
     const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
@@ -915,7 +708,7 @@ export class WhiskeyEngine {
       random -= w;
     }
 
-    const name = names[Math.floor(Math.random() * names.length)];
+    const name = CUSTOMER_NAMES[Math.floor(Math.random() * CUSTOMER_NAMES.length)];
     
     let patience = 50;
     let knowledge = 50;
@@ -998,7 +791,7 @@ export class WhiskeyEngine {
 
     return {
       id: Math.random().toString(36).substr(2, 9),
-      name: names[Math.floor(Math.random() * names.length)],
+      name: CUSTOMER_NAMES[Math.floor(Math.random() * CUSTOMER_NAMES.length)],
       personality,
       patience: Math.max(0, Math.min(100, patience + (Math.random() * 20 - 10))),
       knowledge: Math.max(0, Math.min(100, knowledge + (Math.random() * 20 - 10))),
@@ -1219,61 +1012,10 @@ export class WhiskeyEngine {
   }
 
   public getDialogueResponse(customer: Customer, optionId: string, isPlayerBuying: boolean, bottle: Bottle): string {
-    const responses: Record<string, Record<CustomerPersonality, string>> = {
-      'friendly_greeting': {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Hey there! Good to see a friendly face. I brought this {brand} in today." : "Hey there! Good to see a friendly face. It's a beautiful day to buy some {type}, isn't it?",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "Hello. I've brought a {year} {distillery} I think you'll find interesting. Let's see if you agree." : "Hello. I appreciate the warm welcome, but let's see if your {brand} inventory matches your hospitality.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Yeah, yeah, hi. I've got a {productLine} here that's worth a fortune. Hope you've got deep pockets today." : "Yeah, yeah, hi. I'm busy, so let's hope you've got some good prices on {type} today.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "Oh, hello! Thank you for seeing me. I... I really need to sell this {brand}." : "Oh, hello! Thank you for seeing me. I... I really need a bottle of {type} for tonight.",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "Good day. I'm thinning out my collection and thought your shop might appreciate this {productLine}." : "Good day. I've heard your shop has some interesting pieces. I'm looking for a {brand} to complete a set.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "Hi! I found this {brand} in my grandfather's attic. I'm not sure what it is, but it looks old!" : "Hi! Wow, you have so many bottles here. I'm just starting to learn about {type}.",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Hello. I've heard a lot of talk about this place. Let's see if you give a fair price for this {brand}." : "Hello. I've heard a lot of talk about this place. Let's see if your {distillery} selection is actually any good.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "Hey. I'm looking to offload some {type}. Hope you're buying today." : "Hey. Hope you're ready to move some inventory today. I'm looking for a deal on {brand}."
-      },
-      'professional_greeting': {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Good day to you too! Very formal, I like it. I'm hoping to sell this {brand}." : "Good day to you too! Very formal, I like it. Let's see what {type} you have.",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "Good day. I prefer a business-like approach. I have a {year} {distillery} to discuss." : "Good day. I prefer a business-like approach. Let's see your {type} selection.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Right. Business. That's what I'm here for. Let's talk numbers on this {brand} soon." : "Right. Business. That's what I'm here for. Show me the good stuff.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "Yes, hello. I'm ready to discuss terms for this {productLine} whenever you are." : "Yes, hello. I'm looking to buy some {type}, but I need a good price.",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "Greetings. I appreciate a professional establishment. I'm offering a piece of my {brand} collection." : "Greetings. I appreciate a professional establishment. It suggests your inventory is well-curated.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "Hello, sir. I'm here to... well, I'm here to sell this {brand}, I think." : "Hello, sir. I'm here to... well, I'm here to buy something nice, I think.",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Good day. Let's keep this professional and straightforward. I have a {type} to sell." : "Good day. Let's keep this professional and straightforward. No games.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "Hello. Let's get right to it. I'm here to see what you can offer me for this {brand}." : "Hello. Let's get right to it. I'm here to see what kind of deal you can give me on a {type}."
-      },
-      'whiskey_smalltalk': {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Oh, I love a good {type}! There's something about that {brand} profile that just hits right, you know?" : "I've always enjoyed a solid {type}. Hoping this {brand} hits the spot.",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "The current market is fascinating. Too many people chasing labels instead of liquid quality, though {distillery} usually gets it right." : "I'm looking closely at {distillery} releases lately. Their {type} output has been... interesting.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Whiskey is a better investment than gold right now. That's why I'm here with this {brand}." : "Whiskey is a better investment than gold right now. I'm looking for a {brand} that will appreciate.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "I used to enjoy a glass now and then... but lately, I'm more interested in what this {brand} is worth." : "I used to enjoy a glass now and then... but lately, I just need a drink.",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "I've been tracking {distillery}'s output for years. The nuances in their {year} runs are unparalleled." : "I'm trying to complete a vertical of {brand}. It's been quite the hunt.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "I heard someone say 'peaty' once. Is that like... dirt? I'm still trying to figure out if I like {type}." : "I heard someone say 'peaty' once. Is that like... dirt? I'm still trying to figure out what {type} to buy.",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Everyone claims their bottles are 'hand-selected.' Usually, it's just marketing fluff from {distillery}." : "Everyone claims their bottles are 'hand-selected.' I'll be the judge of this {brand}.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "I don't care much for the story behind {brand}. I care about the price per ounce." : "I don't care much for the story behind {brand}. I care about the price per ounce."
-      },
-      'general_smalltalk': {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Can you believe this weather? Perfect for a porch pour of this {brand}." : "Can you believe this weather? Perfect for a porch pour.",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "The industry is changing. These new 'craft' distilleries are hit or miss, unlike this {distillery}." : "The industry is changing. These new 'craft' distilleries are hit or miss.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Time is money, friend. I'm not here to talk about the weather, I'm here to sell this {type}." : "Time is money, friend. I'm not here to talk about the weather.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "It's been a long week. I'm just looking to get this {brand} settled." : "It's been a long week. I'm just looking to get this settled.",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "The local auction scene has been quite active lately. Some truly rare pieces surfacing, like this {productLine}." : "The local auction scene has been quite active lately. Some truly rare pieces surfacing.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "It's a nice shop you have here. Very... woody. I hope you like this {brand}." : "It's a nice shop you have here. Very... woody. I like the smell.",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "I've seen shops like this come and go. It's a tough business to stay honest in. Let's see how you handle this {type}." : "I've seen shops like this come and go. It's a tough business to stay honest in.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "Nice place. Must have a lot of overhead. Hope that doesn't mean your offers are low." : "Nice place. Must have a lot of overhead. Hope that doesn't mean your prices are high."
-      },
-      'inspect_bottle': {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Sure, take a look! It's a nice {brand}, isn't it?" : "Take your time! I'm in no rush. It's a great looking bottle.",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "Go ahead. I've already checked the {year} fill level myself, but I understand the need for due diligence." : "Checking the details? Good. I've already done my own assessment of this {brand}, of course.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Make it quick. I don't have all day for you to gawk at it." : "What are you doing? You should know what you're selling. Let's get to the price.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "Of course... please, check whatever you need. I just want to get this done." : "Is something wrong? I hope it's still what you said it was...",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "By all means. I've kept this {productLine} in a temperature-controlled environment since I acquired it." : "A thorough inspection is always wise. I've been doing the same from over here.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "Oh, is that what you do? Cool! Tell me if you find anything interesting about this {brand}." : "Wow, you're really looking at it closely! I should learn how to do that.",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Go ahead. You won't find anything wrong with it, I've already looked." : "Checking for flaws? I'm doing the same. I don't buy anything without a full look.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "Fine, but don't use it as an excuse to lowball me. It's solid." : "Go ahead, look all you want. It won't change what I'm willing to pay."
-      }
-    };
-
-    const responseTemplate = responses[optionId]?.[customer.personality] || "I'm not sure what to say to that.";
-    return this.interpolateDialogue(responseTemplate, customer, bottle);
+    const responseTemplate = DIALOGUE_RESPONSES[optionId]?.[customer.personality] || "I'm not sure what to say to that.";
+    const [buyingText, sellingText] = responseTemplate.split('|');
+    const textToUse = isPlayerBuying ? buyingText : (sellingText || buyingText);
+    return this.interpolateDialogue(textToUse, customer, bottle);
   }
 
   public static getNextLevelXP(level: number): number {
@@ -1282,186 +1024,7 @@ export class WhiskeyEngine {
   }
 
   public getTacticResponse(customer: Customer, tacticId: string, success: boolean, bottle: Bottle): string {
-    const responses: Record<string, { success: Record<CustomerPersonality, string>; failure: Record<CustomerPersonality, string> }> = {
-      'sample': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Oh, that's very kind of you! It's a lovely pour, really opens up the palate.",
-          [CustomerPersonality.EXPERT]: "A generous offer. The nose on this is exactly what I expected from this vintage.",
-          [CustomerPersonality.GREEDY]: "Free whiskey? I won't say no to that. It's... acceptable.",
-          [CustomerPersonality.DESPERATE]: "Thank you, I... I really needed a moment to breathe. It's delicious.",
-          [CustomerPersonality.COLLECTOR]: "An excellent choice for a sample. The complexity is truly remarkable.",
-          [CustomerPersonality.NOVICE]: "Wow, is this for me? It's strong, but I like the way it smells!",
-          [CustomerPersonality.SKEPTIC]: "Fine, I'll try it. But don't think a free drink is going to change my mind.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Free is my favorite price. It's good, but let's get back to the deal."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "I'm not really thirsty right now, but thanks anyway.",
-          [CustomerPersonality.EXPERT]: "I don't need a sample to know what this is. Let's stick to the business.",
-          [CustomerPersonality.GREEDY]: "I'm not here for a handout. I'm here for a transaction.",
-          [CustomerPersonality.DESPERATE]: "I really don't have time for a drink. I need to get this settled.",
-          [CustomerPersonality.COLLECTOR]: "I've already tasted this bottling. Let's not waste any more time.",
-          [CustomerPersonality.NOVICE]: "Oh, no thank you. I'm a bit nervous about trying something so... expensive.",
-          [CustomerPersonality.SKEPTIC]: "You're just trying to cloud my judgment with alcohol. No thanks.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Unless that sample comes with a discount, I'm not interested."
-        }
-      },
-      'admire': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "It is a beauty, isn't it? I've always loved the label design.",
-          [CustomerPersonality.EXPERT]: "You have a good eye. This particular glass is from a very limited run.",
-          [CustomerPersonality.GREEDY]: "Of course it's nice. It's a premium item, and I expect a premium price.",
-          [CustomerPersonality.DESPERATE]: "I'm glad you like it. It's one of the few things I have left of value.",
-          [CustomerPersonality.COLLECTOR]: "Indeed. The provenance of this bottle is quite storied. I'm glad you appreciate it.",
-          [CustomerPersonality.NOVICE]: "Thanks! I thought it looked pretty fancy myself.",
-          [CustomerPersonality.SKEPTIC]: "It's a bottle. It's what's inside that counts, but I suppose it's in good shape.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "It's a nice bottle, sure. But I'm looking for a nice price to match."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "It's just a bottle, really. Let's not get too caught up in the looks.",
-          [CustomerPersonality.EXPERT]: "I'm not interested in aesthetic flattery. Let's talk about the liquid.",
-          [CustomerPersonality.GREEDY]: "The bottle doesn't matter. The profit does.",
-          [CustomerPersonality.DESPERATE]: "Please, don't just look at it. I really need to make this deal.",
-          [CustomerPersonality.COLLECTOR]: "I'm well aware of its merits. I don't need them pointed out to me.",
-          [CustomerPersonality.NOVICE]: "Oh... okay. I didn't think it was that special.",
-          [CustomerPersonality.SKEPTIC]: "You're just trying to drive up the price by talking about the 'art'.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Pretty bottles don't pay the bills. Let's talk numbers."
-        }
-      },
-      'fair_shake': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "I appreciate that. I'm looking for a fair deal too.",
-          [CustomerPersonality.EXPERT]: "Professionalism is rare these days. I respect your approach.",
-          [CustomerPersonality.GREEDY]: "Fair is whatever makes me the most money, but I'll play along.",
-          [CustomerPersonality.DESPERATE]: "Thank you. I really need someone to be fair with me right now.",
-          [CustomerPersonality.COLLECTOR]: "A transparent negotiation is always preferred. Let's proceed.",
-          [CustomerPersonality.NOVICE]: "That's good to hear. I was a bit worried about being taken advantage of.",
-          [CustomerPersonality.SKEPTIC]: "We'll see. Actions speak louder than words, but it's a start.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Fair sounds good. As long as 'fair' means a great price for me."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "That's a bit formal, isn't it? Let's just talk like people.",
-          [CustomerPersonality.EXPERT]: "I've heard that line before. Let's see the numbers first.",
-          [CustomerPersonality.GREEDY]: "Save the integrity speech. I'm here for the bottom line.",
-          [CustomerPersonality.DESPERATE]: "I don't care about 'fair'. I just need the money.",
-          [CustomerPersonality.COLLECTOR]: "I'm not here for a lecture on ethics. I'm here for a deal.",
-          [CustomerPersonality.NOVICE]: "Oh... okay. I didn't think you were being unfair.",
-          [CustomerPersonality.SKEPTIC]: "Everyone says they're fair right before they try to screw you over.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Fair doesn't mean anything to me. I want a bargain."
-        }
-      },
-      'ledger': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Oh, you have a ledger? That's very organized. What does it say?",
-          [CustomerPersonality.EXPERT]: "I've consulted similar data. Your records seem accurate.",
-          [CustomerPersonality.GREEDY]: "If the data says it's worth more, then I want more. Simple as that.",
-          [CustomerPersonality.DESPERATE]: "If the ledger says it's worth that much, then I have to believe you.",
-          [CustomerPersonality.COLLECTOR]: "Market data is essential for a bottle of this caliber. I agree with your findings.",
-          [CustomerPersonality.NOVICE]: "Wow, you have a whole book for this? You must really know your stuff.",
-          [CustomerPersonality.SKEPTIC]: "Let me see those numbers. Hmm... okay, that seems legitimate.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Data is fine, but I'm looking at the reality of my wallet right now."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "That's a lot of reading. Can't we just pick a number?",
-          [CustomerPersonality.EXPERT]: "Your ledger is incomplete. It doesn't account for the recent auction spikes.",
-          [CustomerPersonality.GREEDY]: "I don't care what your book says. I know what I want.",
-          [CustomerPersonality.DESPERATE]: "Please, don't use a book to tell me I'm getting less. I need this.",
-          [CustomerPersonality.COLLECTOR]: "Your data is flawed. It's not reflecting the true rarity of this cask.",
-          [CustomerPersonality.NOVICE]: "You're making this very complicated. I just wanted to sell a bottle.",
-          [CustomerPersonality.SKEPTIC]: "You probably wrote that ledger yourself this morning. I don't trust it.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Ledgers are for accountants. I'm a buyer looking for a deal."
-        }
-      },
-      'flattery': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Well, thank you! I do try to keep a sharp eye out for the good stuff.",
-          [CustomerPersonality.EXPERT]: "I appreciate the recognition. It's rare to find a shopkeeper who knows their stuff about {distillery}.",
-          [CustomerPersonality.GREEDY]: "Finally, someone who recognizes true value. This {brand} is worth every penny.",
-          [CustomerPersonality.DESPERATE]: "Oh, thank you... I've always been proud of this one.",
-          [CustomerPersonality.COLLECTOR]: "Indeed. I've spent years curating my collection. I'm glad you noticed this {productLine}.",
-          [CustomerPersonality.NOVICE]: "Wow, really? I just thought it looked cool! Thanks!",
-          [CustomerPersonality.SKEPTIC]: "Hmm. You're not just saying that to get a better deal, are you? Fine, I'll listen.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Yeah, yeah. Flattery won't lower my price, but I appreciate the sentiment."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "Oh, that's a bit much, don't you think? Let's just talk about the whiskey.",
-          [CustomerPersonality.EXPERT]: "Don't try to butter me up. I know exactly what I have and what this {brand} is worth.",
-          [CustomerPersonality.GREEDY]: "Save the sweet talk for someone who cares. I'm here for the money.",
-          [CustomerPersonality.DESPERATE]: "Please, let's just get to the deal. I don't have time for this.",
-          [CustomerPersonality.COLLECTOR]: "I'm not here for compliments. I'm here for a professional transaction.",
-          [CustomerPersonality.NOVICE]: "Oh... that feels a bit weird. Are you okay?",
-          [CustomerPersonality.SKEPTIC]: "I knew it. You're just trying to manipulate me. I'm losing my patience.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Nice try. My price is my price, no matter how much you like my 'taste'."
-        }
-      },
-      'market_insight': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Is that so? I hadn't heard that about {type}. I guess I should be more careful.",
-          [CustomerPersonality.EXPERT]: "You're right. The secondary market for {distillery} is shifting. I'll take that into account.",
-          [CustomerPersonality.GREEDY]: "Hmm. If the market is cooling, maybe I should sell now before it drops further.",
-          [CustomerPersonality.DESPERATE]: "Oh no... I didn't realize it was losing value. I need to sell quickly then.",
-          [CustomerPersonality.COLLECTOR]: "Interesting. I've noticed similar trends in the recent auctions for {brand}. Fair point.",
-          [CustomerPersonality.NOVICE]: "Market... trends? I don't really understand, but you seem to know what you're talking about.",
-          [CustomerPersonality.SKEPTIC]: "I'll have to verify that, but it sounds plausible. Let's adjust the numbers.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "If it's not moving, then you should be giving me a better price!"
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "That sounds like a lot of technical talk. I'm just here for a bottle.",
-          [CustomerPersonality.EXPERT]: "I think your data is outdated. I've seen this {brand} sell for much more recently.",
-          [CustomerPersonality.GREEDY]: "I don't care about your 'market insights.' I know what I want.",
-          [CustomerPersonality.DESPERATE]: "Please, don't tell me it's worth less. I really need this money.",
-          [CustomerPersonality.COLLECTOR]: "I disagree with your assessment. This {productLine} is a blue-chip bottle, regardless of trends.",
-          [CustomerPersonality.NOVICE]: "You're confusing me with all these numbers. Can we just talk about the price?",
-          [CustomerPersonality.SKEPTIC]: "Nice try. You're just making things up to lower my expectations.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Market trends? Sounds like an excuse to overcharge me."
-        }
-      },
-      'point_out_flaws': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Oh, I didn't even notice that scuff. You're right, it's not perfect.",
-          [CustomerPersonality.EXPERT]: "Sharp eye. I missed that label tear on the {brand}. I'll adjust my price accordingly.",
-          [CustomerPersonality.GREEDY]: "Fine, it's got a few scratches. It's still a great {type}, though.",
-          [CustomerPersonality.DESPERATE]: "Oh dear... I didn't mean to bring a damaged bottle. I'll take less for it.",
-          [CustomerPersonality.COLLECTOR]: "You're right. For a collector, that fill level is a serious issue. My apologies.",
-          [CustomerPersonality.NOVICE]: "Is that bad? I didn't know that mattered. Sorry!",
-          [CustomerPersonality.SKEPTIC]: "I suppose you're right about the label. It's not in mint condition.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "If it's flawed, then I'm definitely not paying full price!"
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "You're being a bit picky, aren't you? It's just a tiny mark.",
-          [CustomerPersonality.EXPERT]: "That's standard shelf wear for a {year} bottle. You're reaching for excuses now.",
-          [CustomerPersonality.GREEDY]: "Stop nitpicking! You're just trying to cheat me out of my money.",
-          [CustomerPersonality.DESPERATE]: "Please, don't be so hard on it. It's all I have.",
-          [CustomerPersonality.COLLECTOR]: "That's a natural patina! You clearly don't understand vintage {distillery} bottles.",
-          [CustomerPersonality.NOVICE]: "You're being mean to my bottle! It's a perfectly good bottle.",
-          [CustomerPersonality.SKEPTIC]: "You're just looking for any tiny flaw to lowball me. I'm not falling for it.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "A flaw? That's just more reason for you to give me a discount!"
-        }
-      },
-      'the_walk_away': {
-        success: {
-          [CustomerPersonality.EASYGOING]: "Wait! Don't go. I'm sure we can find a price that works for both of us.",
-          [CustomerPersonality.EXPERT]: "Hold on. I'm willing to be more flexible if it means we can close this deal on the {brand}.",
-          [CustomerPersonality.GREEDY]: "Wait, wait! Don't be hasty. Let's look at the numbers again.",
-          [CustomerPersonality.DESPERATE]: "Please! Don't leave! I'll take whatever you're offering, just don't go!",
-          [CustomerPersonality.COLLECTOR]: "I'd hate to see this {productLine} go elsewhere. Let's talk seriously.",
-          [CustomerPersonality.NOVICE]: "Oh no! Did I do something wrong? Please stay!",
-          [CustomerPersonality.SKEPTIC]: "Fine, fine. You've made your point. I'll lower my price.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "Wait! I'm here to buy! Let's make a deal happen."
-        },
-        failure: {
-          [CustomerPersonality.EASYGOING]: "Well, if you're not interested, I guess I'll just head out. Have a nice day.",
-          [CustomerPersonality.EXPERT]: "If you can't appreciate the value here, I'll find someone who can. Goodbye.",
-          [CustomerPersonality.GREEDY]: "Fine! Go! I'll find someone who actually has the money for this {brand}.",
-          [CustomerPersonality.DESPERATE]: "Oh... okay. I guess I'll try somewhere else then...",
-          [CustomerPersonality.COLLECTOR]: "I don't have time for games. If you're not serious about this {distillery}, I'm leaving.",
-          [CustomerPersonality.NOVICE]: "Oh... okay. Sorry for bothering you.",
-          [CustomerPersonality.SKEPTIC]: "I knew you weren't serious. You're just wasting my time. I'm out of here.",
-          [CustomerPersonality.BARGAIN_HUNTER]: "If you don't want to sell, I'll find a better deal elsewhere."
-        }
-      }
-    };
-
-    const responseTemplate = responses[tacticId]?.[success ? 'success' : 'failure']?.[customer.personality] || "I'm not sure what to say to that.";
+    const responseTemplate = TACTIC_RESPONSES[tacticId]?.[success ? 'success' : 'failure']?.[customer.personality] || "I'm not sure what to say to that.";
     return this.interpolateDialogue(responseTemplate, customer, bottle);
   }
 
@@ -1693,31 +1256,13 @@ export class WhiskeyEngine {
   }
 
   private getDealText(customer: Customer, isPlayerBuying: boolean, bottle: Bottle): string {
-    const texts: Record<CustomerPersonality, string> = {
-      [CustomerPersonality.EASYGOING]: isPlayerBuying ? "You've got yourself a deal! I'm happy to see this {brand} go to a good home." : "That's a fair price for a {type}. I'll take it!",
-      [CustomerPersonality.EXPERT]: isPlayerBuying ? "A reasonable offer for a {year} bottling. We have a deal." : "That matches my valuation of this {brand}. I'll buy it.",
-      [CustomerPersonality.GREEDY]: isPlayerBuying ? "Fine, fine. Take the {productLine} before I change my mind." : "I suppose that's acceptable for this {brand}. Deal.",
-      [CustomerPersonality.DESPERATE]: isPlayerBuying ? "Thank you! Yes, that works. I really appreciate it." : "I can afford that. Thank you so much.",
-      [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "I'm glad it's going to a serious shop. I hope you find a good home for it." : "Excellent. This {brand} will be a fine addition to my collection.",
-      [CustomerPersonality.NOVICE]: isPlayerBuying ? "Oh, okay! If you say that's what it's worth, I trust you." : "I'll take it! I hope it's as good as you say.",
-      [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Fine. I'll sell it. But I still think you're getting the better end of this." : "Alright, I'll buy it. It seems legitimate enough.",
-      [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "You drive a hard bargain, but I'll take the cash." : "Finally, a price that makes sense for a {type}. Deal."
-    };
-    return this.interpolateDialogue(texts[customer.personality], customer, bottle);
+    const text = isPlayerBuying ? DEAL_TEXTS[customer.personality].buying : DEAL_TEXTS[customer.personality].selling;
+    return this.interpolateDialogue(text, customer, bottle);
   }
 
   private getWalkAwayText(customer: Customer, isPlayerBuying: boolean, bottle: Bottle): string {
-    const texts: Record<CustomerPersonality, string> = {
-      [CustomerPersonality.EASYGOING]: isPlayerBuying ? "I don't think we're going to find a middle ground here. I'll take my {brand} elsewhere." : "I don't think we're going to find a middle ground here. I'll be heading out.",
-      [CustomerPersonality.EXPERT]: isPlayerBuying ? "Your numbers for this {brand} are completely detached from reality. I'm wasting my time." : "Your prices for this {brand} are completely detached from reality. I'm wasting my time.",
-      [CustomerPersonality.GREEDY]: isPlayerBuying ? "You're trying to rob me blind! I'm taking my {type} and leaving." : "You're trying to rob me blind! I'm not paying that.",
-      [CustomerPersonality.DESPERATE]: isPlayerBuying ? "I... I can't do that. I need to find someone more reasonable to sell to. Sorry." : "I... I can't do that. I need to find a cheaper bottle. Sorry.",
-      [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "I'm looking for serious buyers, not games. I'll look elsewhere to sell my {distillery} bottles." : "I'm looking for serious sellers, not games. I'll look elsewhere for my {distillery} bottles.",
-      [CustomerPersonality.NOVICE]: isPlayerBuying ? "This is all a bit too much for me. I think I'll just keep the bottle." : "This is all a bit too much for me. I think I'll just go without.",
-      [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "I knew this was a waste of time. You're trying to steal my {brand}. I'm leaving." : "I knew this was a waste of time. You're trying to rip me off. I'm leaving.",
-      [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "I can find a better buyer than this at a gas station. I'm out." : "I can find a better deal than this at a gas station. I'm out."
-    };
-    return this.interpolateDialogue(texts[customer.personality], customer, bottle);
+    const text = isPlayerBuying ? WALK_AWAY_TEXTS[customer.personality].buying : WALK_AWAY_TEXTS[customer.personality].selling;
+    return this.interpolateDialogue(text, customer, bottle);
   }
 
   private getCounterText(customer: Customer, isPlayerBuying: boolean, playerOffer: number, targetPrice: number, counter: number, bottle: Bottle): string {
@@ -1725,41 +1270,17 @@ export class WhiskeyEngine {
     
     if (diffPercent > 0.4) {
       // Far apart
-      const texts: Record<CustomerPersonality, string> = {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "Whoa, that's a bit lower than I was hoping for. Can you come up closer to my ask?" : "Whoa, that's a bit higher than I was hoping for. Can you come down closer to my budget?",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "That's an insulting offer for a {brand} of this caliber. You'll need to do much better." : "That's an insulting price for a {brand} of this caliber. You'll need to do much better.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Are you joking? I'm not giving this {type} away. My price is firm, but I'll drop a tiny bit." : "Are you joking? I'm not paying that much. My price is firm, but I'll go up a tiny bit.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "Please, I really need more than that. It's a special bottle..." : "Please, I really can't afford that much. Can we do better?",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "I know exactly what this {productLine} is worth. Your offer is nowhere near the market value." : "I know exactly what this {productLine} is worth. Your price is nowhere near the market value.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "Is it really only worth that much? I thought it was more... can we do better?" : "Is it really that expensive? I thought it was less... can we do better?",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "I expected as much. You're trying to lowball me. I'm not biting." : "I expected as much. You're trying to overcharge me. I'm not biting.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "You're going to have to do better than that if you want my {brand}." : "You're going to have to do better than that if you want my money."
-      };
-      return `${this.interpolateDialogue(texts[customer.personality], customer, bottle)} How about $${counter}?`;
+      const text = isPlayerBuying ? COUNTER_TEXTS_FAR[customer.personality].buying : COUNTER_TEXTS_FAR[customer.personality].selling;
+      return `${this.interpolateDialogue(text, customer, bottle)} How about $${counter}?`;
     } else {
       // Getting close
-      const texts: Record<CustomerPersonality, string> = {
-        [CustomerPersonality.EASYGOING]: isPlayerBuying ? "We're getting there! Just a little more and we've got a deal for this {brand}." : "We're getting there! Just a little less and we've got a deal.",
-        [CustomerPersonality.EXPERT]: isPlayerBuying ? "You're closer to the mark now. Still a bit off for a {year} bottling, though." : "You're closer to the mark now. Still a bit high for a {year} bottling, though.",
-        [CustomerPersonality.GREEDY]: isPlayerBuying ? "Better. Still not enough. Let's meet here for the {type}." : "Better. Still too much. Let's meet here.",
-        [CustomerPersonality.DESPERATE]: isPlayerBuying ? "That's almost enough... just a bit more and I can let it go." : "That's almost affordable... just a bit less and I can take it.",
-        [CustomerPersonality.COLLECTOR]: isPlayerBuying ? "We are approaching a fair valuation for this {brand}. Let's refine it." : "We are approaching a fair price for this {brand}. Let's refine it.",
-        [CustomerPersonality.NOVICE]: isPlayerBuying ? "Oh, that sounds closer to what I was thinking! How about this?" : "Oh, that sounds closer to what I can afford! How about this?",
-        [CustomerPersonality.SKEPTIC]: isPlayerBuying ? "Hmm. That's a more realistic number. But I still need a bit more." : "Hmm. That's a more realistic number. But I still need a bit less.",
-        [CustomerPersonality.BARGAIN_HUNTER]: isPlayerBuying ? "Now we're talking. Just a little more of a premium and you've got a seller." : "Now we're talking. Just a little more of a discount and you've got a buyer."
-      };
-      return `${this.interpolateDialogue(texts[customer.personality], customer, bottle)} $${counter} is my best offer for now.`;
+      const text = isPlayerBuying ? COUNTER_TEXTS_CLOSE[customer.personality].buying : COUNTER_TEXTS_CLOSE[customer.personality].selling;
+      return `${this.interpolateDialogue(text, customer, bottle)} $${counter} is my best offer for now.`;
     }
   }
 
   public getDialogueOptions(): DialogueOption[] {
-    return [
-      { id: 'friendly_greeting', label: 'Friendly Greeting', type: 'greeting' },
-      { id: 'professional_greeting', label: 'Professional Greeting', type: 'greeting' },
-      { id: 'whiskey_smalltalk', label: 'Whiskey Small Talk', type: 'smalltalk' },
-      { id: 'general_smalltalk', label: 'General Small Talk', type: 'smalltalk' },
-      { id: 'get_to_business', label: 'Get to Business', type: 'business' }
-    ];
+    return DIALOGUE_OPTIONS;
   }
 
   public getDistillery(id: string) {
@@ -1779,19 +1300,13 @@ export class WhiskeyEngine {
     const floor = 0.3 + (shopLevel - 1) * (0.65 - 0.3) / 5;
     const ceiling = 1.1 + (shopLevel - 1) * (1.5 - 1.1) / 5;
     
-    const rarityBonus: Record<Rarity, number> = {
-      [Rarity.COMMON]: 0,
-      [Rarity.UNCOMMON]: 0.05,
-      [Rarity.RARE]: 0.1,
-      [Rarity.EPIC]: 0.2,
-      [Rarity.LEGENDARY]: 0.3,
-      [Rarity.UNICORN]: 0.5,
-    };
+    // Using a slightly modified version of prestige factors for auction frenzy
+    const rarityBonus = RARITY_PRESTIGE_FACTORS[bottle.rarity] * 0.5;
 
     let highestBid = 0;
     for (let i = 0; i < bidderCount; i++) {
       let bidMultiplier = Math.random() * (ceiling - floor) + floor;
-      bidMultiplier += rarityBonus[bottle.rarity] * Math.random();
+      bidMultiplier += rarityBonus * Math.random();
       const bid = Math.floor(bottle.value * bidMultiplier);
       if (bid > highestBid) highestBid = bid;
     }

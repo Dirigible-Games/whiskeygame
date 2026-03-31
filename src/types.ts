@@ -21,11 +21,11 @@ export enum Rarity {
 
 export enum WhiskeyType {
   BOURBON = 'Bourbon',
-  RYE = 'Rye',
-  SINGLE_MALT_SCOTCH = 'Single Malt',
-  IRISH_WHISKEY = 'Irish',
-  JAPANESE_WHISKY = 'Japanese',
-  CANADIAN_WHISKY = 'Canadian',
+  RYE = 'Rye Whiskey',
+  SINGLE_MALT_SCOTCH = 'Single Malt Scotch Whisky',
+  IRISH_WHISKEY = 'Irish Whisky',
+  JAPANESE_WHISKY = 'Japanese Whisky',
+  CANADIAN_WHISKY = 'Canadian Whiskey',
 }
 
 export enum Region {

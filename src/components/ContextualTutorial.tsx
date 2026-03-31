@@ -14,21 +14,21 @@ const TUTORIAL_CONTENT: Record<NonNullable<TutorialStep>, { title: string; conte
   welcome: [
     {
       title: "Welcome to Vintage Spirits",
-      content: "You are the owner of a rare whiskey shop. Your goal is to buy low, sell high, and build the ultimate collection of rare spirits. Name your shop and create your legacy."
+      content: "You've managed to score a liquor license in your city, and with it you've opened your rare and vintage whiskey business. Make a name for yourself and turn this street-side market stall into a tourist destination!"
     }
   ],
   shop_overview: [
     {
-      title: "Open Shop",
-      content: "Click 'Open Shop' to start your day. Customers will begin arriving with bottles to sell or looking to buy from your collection."
+      title: "Operations",
+      content: "Making good deals is key to raising your reputation. Failing deals will lower your reputation. Finishing 3 days with a negative reputation will result in license forfeiture. Rent is due every 7 days. Fail to make rent twice in a row, and you'll lose your business. Click 'Open Shop' to begin a day. "
     },
     {
       title: "Auctions",
-      content: "If your inventory is full, you can host an auction to sell off your most valuable bottles to the highest bidder. The 'Host Auction' button is always here, but you need inventory to use it."
+      content: "If your inventory is getting full, you can host an auction to try to move some product to the highest bidders."
     },
     {
       title: "Shop Upgrades",
-      content: "To attract wealthier clientele and rarer bottles, you need to upgrade your shop. Upgrading requires both Money and Reputation. Keep an eye on the Upgrade button!"
+      content: "To attract wealthier clientele and rarer bottles, you need to upgrade your shop. Upgrading requires both Money and a minimum Reputation."
     },
     {
       title: "Tools",
@@ -36,11 +36,11 @@ const TUTORIAL_CONTENT: Record<NonNullable<TutorialStep>, { title: string; conte
     },
     {
       title: "Skills",
-      content: "As you trade different types of whiskey, you gain XP and level up those skills. Higher skills give you an edge in negotiations. Check your progress in the Skills menu."
+      content: "As you trade different types of whiskey, you gain XP and level up those skills. Higher skills can give you an edge in negotiations. Check your progress in the Skills menu."
     },
     {
       title: "Inventory",
-      content: "Your Inventory is where you manage your collection. You can view your bottles, check their stats, and decide what to keep or sell."
+      content: "Your Inventory is where you manage your collection. You can view your bottles here, or spend extra time (and money) after hours researching them to learn what they might be worth."
     },
     {
       title: "The Codex",
@@ -50,49 +50,49 @@ const TUTORIAL_CONTENT: Record<NonNullable<TutorialStep>, { title: string; conte
   first_customer: [
     {
       title: "Conversation",
-      content: "When a customer enters, you enter a negotiation. Use greetings and small talk to build rapport, reduce their walk-away chance, and learn about their preferences."
+      content: "Use greetings and small talk to build rapport, reduce their walk-away chance, and maybe even learn something you didn't know."
     },
     {
       title: "Get to Business",
-      content: "When you're ready to start haggling over the price, click 'Get to Business'. Be careful not to chat too long if the customer is impatient!"
+      content: "When you're ready to start making a deal, click 'Get to Business'."
     }
   ],
   first_deal: [
     {
       title: "The Bottle Card",
-      content: "This is the Bottle Card. It contains all the information you need to appraise the bottle and negotiate a fair price."
+      content: "This is the Bottle Card. It contains all the information you know about the bottle, either from your own knowledge or from the customer's. Customers with higher knowledge will tell you more about the bottle."
     },
     {
-      title: "Left Info Cells",
-      content: "These cells show the Region, Whiskey Type, and Rarity. This helps you determine the base value of the bottle."
+      title: "Bottle Info",
+      content: "These cells show the bottle's Region, Type, and Rarity. The rarer the bottle, the more money to be made."
     },
     {
-      title: "Right Info Cells",
-      content: "These cells show any special Modifiers (like Single Barrel or Cask Strength)."
+      title: "Bottle Info",
+      content: "These cells show any special Modifiers (think Single Barrel, Bottled-in-Bond, Cask Strength, or barrel finishes)."
     },
     {
-      title: "Name & Bottom Cells",
-      content: "Here you'll find the Distillery, Brand, and specific Product Line, along with the Proof, Age Statement, and Year of Production."
+      title: "Name & Statistics",
+      content: "Here you'll find the Brand name and Product Line, along with the bottle's Proof, Age Statement, and Year of Production."
     },
     {
       title: "Inspect Button",
-      content: "Use the Inspect button to examine the bottle closely. This can reveal hidden flaws, confirm authenticity, or uncover special details."
+      content: "Use the Inspect button to examine the bottle closely. The more you learn about a type of whiskey, the better your chances of discovering unknown info about a bottle. The customer doesn't know what you learn, so use this to your advantage!"
     },
     {
-      title: "Price & Bid",
-      content: "This area shows the customer's asking price and your current bid. You can adjust your bid to negotiate."
+      title: "Offers",
+      content: "This area shows the customer's asking price and your current offer. Press on your offer (in green) to input your price, or raise/lower the price by $10 at a time with the buttons."
     },
     {
       title: "Transaction History",
-      content: "Click this to view past transactions for similar bottles. This helps you gauge the market value."
+      content: "Click this to view the history of your buy/sell transactions with this particular bottle. This can help you gauge the market value."
     },
     {
       title: "Tactics",
-      content: "Use Tactics to influence the negotiation. Soft tactics build rapport, while Hard tactics push the price in your favor."
+      content: "Use Tactics to influence the negotiation. Soft tactics can build rapport, while Hard tactics can push the price in your favor, but remember, every customer is different."
     },
     {
       title: "Final Actions",
-      content: "When you're ready, Send your Counter Offer. If the price is right, you can Accept. If the deal goes sour, you can Walk Away."
+      content: "When you're ready, Send your Counter Offer. If the price is right, you can Accept. If the deal starts to go sour, you can Walk Away."
     }
   ]
 };

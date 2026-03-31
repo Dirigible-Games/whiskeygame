@@ -8,6 +8,7 @@ import { Bottle, Brand, Rarity, ReleaseType } from '../types';
 import { getAgeDisplay } from '../engine';
 import { Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { AutoScalingText } from './AutoScalingText';
 
 interface BottleImageProps {
   brand?: Brand;
@@ -249,8 +250,10 @@ export const BottleCard: React.FC<BottleCardProps> = ({
       // Special handling for modifiers
       if (field.startsWith('modifiers_')) {
         const idx = parseInt(field.split('_')[1]);
+        const modValue = bottle.modifiers[idx];
         return revealedFields.includes('modifiers') || 
-               revealedFields.includes(`modifiers_${idx}`);
+               revealedFields.includes(`modifiers_${idx}`) ||
+               (modValue && revealedFields.includes(modValue));
       }
       return false;
     }
@@ -262,8 +265,10 @@ export const BottleCard: React.FC<BottleCardProps> = ({
     // Special handling for modifiers
     if (field.startsWith('modifiers_')) {
       const idx = parseInt(field.split('_')[1]);
+      const modValue = bottle.modifiers[idx];
       return fields.includes('modifiers') || 
-             fields.includes(`modifiers_${idx}`);
+             fields.includes(`modifiers_${idx}`) ||
+             (modValue && fields.includes(modValue));
     }
     
     return false;
@@ -671,7 +676,9 @@ export const BottleCard: React.FC<BottleCardProps> = ({
 
 const Tag = ({ label, empty, glow, isScanning }: { label: string; empty?: boolean; glow?: 'success' | 'fail'; isScanning?: boolean; key?: string }) => (
   <div className={`relative text-[9px] px-0.5 py-1 rounded border text-center font-bold uppercase whitespace-nowrap overflow-hidden min-h-[22px] flex items-center justify-center leading-[1.1] transition-colors duration-300 ${empty ? 'border-whiskey-light/40 text-whiskey-light/30 bg-whiskey-dark/50 border-dashed' : 'border-whiskey-light bg-whiskey-dark text-whiskey-gold shadow-sm'} ${isScanning ? 'border-whiskey-gold/60 bg-whiskey-dark/80' : ''}`}>
-    <span className="truncate w-full px-0.5">{label || '\u00A0'}</span>
+    <AutoScalingText maxFontSize={9} minFontSize={4} className="w-full px-0.5">
+      {label || '\u00A0'}
+    </AutoScalingText>
     <AnimatePresence>
       {glow && (
         <motion.div 
