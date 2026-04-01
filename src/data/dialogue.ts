@@ -2,7 +2,7 @@ import { CustomerPersonality, Customer, Bottle } from '../types';
 
 export const DIALOGUE_RESPONSES: Record<string, Record<CustomerPersonality, string>> = {
   'friendly_greeting': {
-    [CustomerPersonality.EASYGOING]: "Hey there! Good to see a friendly face. I brought something from this {brand} in today.|Hey there! Good to see a friendly face. It's a beautiful day to buy some {type}, isn't it?",
+    [CustomerPersonality.EASYGOING]: "Hey there! Good to see a friendly face.|Hey there! Good to see a friendly face. It's a beautiful day to talk {type}, isn't it?",
     [CustomerPersonality.EXPERT]: "Hello. I've brought a {year} bottle from {distillery} that I think you'll find interesting. Let's see if you agree.|Hello. I appreciate the warm welcome, but let's see if your inventory matches your hospitality.",
     [CustomerPersonality.GREEDY]: "Yeah, yeah, hi. I've got a {brand} {productLine} bottle here that's worth a fortune. Hope you've got deep pockets today.|Yeah, yeah, hi. I'm busy, so let's hope you've got some good prices on some {type} bottles today.",
     [CustomerPersonality.DESPERATE]: "Oh, hello! Thank you for seeing me. I... I really need to sell this bottle of {brand}.|Oh, hello! Thank you for seeing me. I... I really need a bottle of {type} for tonight.",
@@ -12,7 +12,7 @@ export const DIALOGUE_RESPONSES: Record<string, Record<CustomerPersonality, stri
     [CustomerPersonality.BARGAIN_HUNTER]: "Hey. I'm looking to offload some {type}. Hope you're buying today.|Hey. Hope you're ready to move some inventory today. I'm looking for a deal on something from {brand}."
   },
   'professional_greeting': {
-    [CustomerPersonality.EASYGOING]: "Good day to you too! Very formal, I like it. I'm hoping to sell this bottle of {brand}.|Good day to you too! Very formal, I like it. Let's see what {type} you have.",
+    [CustomerPersonality.EASYGOING]: "Good day to you too! Very formal, I like it. I'm hoping to sell this bottle of {brand}.|Good day to you too! Very formal, I like it. Let's see what kinds of {type} you have.",
     [CustomerPersonality.EXPERT]: "Good day. I prefer a business-like approach. I have a {year} bottle from {distillery} to discuss.|Good day. I prefer a business-like approach. Let's see your {type} selection.",
     [CustomerPersonality.GREEDY]: "Right. Business. That's what I'm here for. Let's talk numbers on this {brand} bottle soon.|Right. Business. That's what I'm here for. Show me the good stuff.",
     [CustomerPersonality.DESPERATE]: "Yes, hello. I'm ready to discuss terms for this {brand} {productLine} whenever you are.|Yes, hello. I'm looking to buy some {type}, but I need a good price.",

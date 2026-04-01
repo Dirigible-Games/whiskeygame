@@ -1019,8 +1019,8 @@ export class WhiskeyEngine {
   }
 
   public static getNextLevelXP(level: number): number {
-    // Next Level XP = 100 * (Level ^ 1.5)
-    return Math.floor(100 * Math.pow(level || 1, 1.5));
+    // Next Level XP = 150 * (Level ^ 1.7)
+    return Math.floor(150 * Math.pow(level || 1, 1.7));
   }
 
   public getTacticResponse(customer: Customer, tacticId: string, success: boolean, bottle: Bottle): string {
@@ -1214,11 +1214,6 @@ export class WhiskeyEngine {
     const insultThreshold = (0.4 - (customer.aggressiveness / 500)) / trustBonus; // 0.2 to 0.4, lowered by trust
     const isInsulting = isPlayerBuying ? (playerOffer < targetPrice * insultThreshold) : (playerOffer > targetPrice * (1 / insultThreshold));
     
-    // Check for walk away based on chance
-    if (Math.random() * 100 < currentWalkAwayChance) {
-      return { text: this.getWalkAwayText(customer, isPlayerBuying, bottle), deal: false, walkAway: true, nextWalkAwayChance: currentWalkAwayChance };
-    }
-
     // Deal conditions
     if (isPlayerBuying) {
       if (playerOffer >= targetPrice || isClose) {
@@ -1228,6 +1223,11 @@ export class WhiskeyEngine {
       if (playerOffer <= targetPrice || isClose) {
         return { text: this.getDealText(customer, false, bottle), deal: true, walkAway: false, nextWalkAwayChance: currentWalkAwayChance };
       }
+    }
+
+    // Check for walk away based on chance
+    if (Math.random() * 100 < currentWalkAwayChance) {
+      return { text: this.getWalkAwayText(customer, isPlayerBuying, bottle), deal: false, walkAway: true, nextWalkAwayChance: currentWalkAwayChance };
     }
 
     // Increase walk away chance for next turn

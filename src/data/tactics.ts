@@ -45,9 +45,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'flattery',
     name: 'Flattery',
     description: 'Charm the customer with compliments. High trust boost, but can backfire on skeptics.',
-    minSkill: 1,
+    minSkill: 2,
     category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 3 
+    playerDialogue: (skill, isPlayerBuying) => skill < 4 
       ? "You look like someone who knows their whiskey!" 
       : "It's rare to meet someone with such an impeccable sense of timing and taste."
   },
@@ -55,9 +55,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'market_insight',
     name: 'Market Insight',
     description: 'Show off your knowledge of current trends to justify your price.',
-    minSkill: 1,
+    minSkill: 2,
     category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 3
+    playerDialogue: (skill, isPlayerBuying) => skill < 4
       ? "I heard this distillery is getting popular lately."
       : "Given the recent acquisition of this distillery, the secondary market for these older labels is tightening significantly."
   },
@@ -65,9 +65,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'shared_passion',
     name: 'Shared Passion',
     description: 'Connect over the craft. Massive trust boost for enthusiasts.',
-    minSkill: 2,
+    minSkill: 4,
     category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 4
+    playerDialogue: (skill, isPlayerBuying) => skill < 6
       ? "I really love the way they make this one."
       : "I can tell you really appreciate the craft. This distillery uses a very specific char on their barrels that creates that unique profile..."
   },
@@ -75,9 +75,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'point_out_flaws',
     name: 'Point Out Flaws',
     description: 'Highlight minor issues to lower their price or justify yours. Hurts patience.',
-    minSkill: 2,
+    minSkill: 4,
     category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 4
+    playerDialogue: (skill, isPlayerBuying) => skill < 6
       ? "The label is a bit scuffed up, don't you think?"
       : "While the liquid is pristine, the slight oxidation on the capsule is a factor we must consider in the final valuation."
   },
@@ -85,9 +85,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'long_game',
     name: 'The Long Game',
     description: 'Show you are in no rush. Maxes out patience.',
-    minSkill: 3,
+    minSkill: 6,
     category: 'soft',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
+    playerDialogue: (skill, isPlayerBuying) => skill < 8
       ? "I'm in no hurry, take your time."
       : (isPlayerBuying ? "Take your time, I'm in no rush to acquire this. Quality like this deserves careful consideration." : "Take your time, I'm in no rush to see this leave the shelf. Quality like this deserves careful consideration.")
   },
@@ -95,9 +95,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'scarcity',
     name: 'Scarcity Play',
     description: 'Create urgency. Increases walk-away chance but can force a quick deal.',
-    minSkill: 3,
+    minSkill: 6,
     category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
+    playerDialogue: (skill, isPlayerBuying) => skill < 8
       ? (isPlayerBuying ? "I've seen a few of these around lately." : "I have another guy interested in this one.")
       : (isPlayerBuying ? "I should mention I've seen several of these specific bottlings at auction recently. It's not as rare as it once was." : "I should mention I've had several inquiries about this specific bottling this morning. It likely won't be here by closing.")
   },
@@ -105,7 +105,7 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'guarantee',
     name: 'Personal Guarantee',
     description: 'Stake your reputation. High success rate if price is reasonable.',
-    minSkill: 4,
+    minSkill: 8,
     category: 'soft',
     playerDialogue: (skill, isPlayerBuying) => isPlayerBuying ? "I stand behind my offers. You won't find a better, more honest valuation anywhere else." : "I stand behind every bottle in this shop. You have my word on its provenance and quality."
   },
@@ -113,9 +113,9 @@ export const NEGOTIATION_TACTICS: Tactic[] = [
     id: 'the_walk_away',
     name: 'The Walk Away',
     description: 'The ultimate power move. High risk, high reward price shift.',
-    minSkill: 4,
+    minSkill: 8,
     category: 'hard',
-    playerDialogue: (skill, isPlayerBuying) => skill < 5
+    playerDialogue: (skill, isPlayerBuying) => skill < 10
       ? "Maybe we just can't make a deal today."
       : "It seems we are at an impasse. I've given my best offer; perhaps this isn't the right time for this particular transaction."
   }
