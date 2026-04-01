@@ -1253,7 +1253,7 @@ export default function App() {
         change = amount * gainFactor;
       }
 
-      const newRep = Math.max(-100, Math.min(100, prev.reputation + change));
+      const newRep = Math.round(Math.max(-100, Math.min(100, prev.reputation + change)));
       return { ...prev, reputation: newRep };
     });
   };
@@ -1312,16 +1312,7 @@ export default function App() {
     };
 
     if (response.walkAway) {
-      let penalty = -2; // Base penalty for average customers
-      if (negotiation.customer.personality === CustomerPersonality.EXPERT || 
-          negotiation.customer.personality === CustomerPersonality.GREEDY) {
-        penalty = -5; // High impact: Experts and Greedy customers complain more
-      } else if (negotiation.customer.personality === CustomerPersonality.SKEPTIC) {
-        penalty = -4; // Moderate impact: Skeptics are vocal
-      } else if (negotiation.customer.personality === CustomerPersonality.COLLECTOR) {
-        penalty = -3; // Standard impact: Collectors are disappointed
-      }
-      adjustReputation(penalty);
+      adjustReputation(-1);
     }
 
     if (response.deal) {
@@ -1525,7 +1516,7 @@ export default function App() {
       isFinished: true
     });
 
-    adjustReputation(-2);
+    adjustReputation(-1);
   };
 
   const handleResearchBottle = (bottle: Bottle) => {

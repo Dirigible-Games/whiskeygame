@@ -450,12 +450,12 @@ export class WhiskeyEngine {
       proof,
       age,
       region: brand.region,
-      rarity: productLine.rarity,
+      rarity: rarity,
       rarityDiscovered: false,
       modifiers: productLine.modifiers,
       name: `${year} ${brand.name} ${productLine.name}`,
-      value: this.calculateValue(age, proof, productLine.rarity, year, productLine.type, distillery.prestige, brand.prestige, productLine.modifiers),
-      purchasePrice: Math.floor(this.calculateValue(age, proof, productLine.rarity, year, productLine.type, distillery.prestige, brand.prestige, productLine.modifiers) * (0.6 + Math.random() * 0.2)),
+      value: this.calculateValue(age, proof, rarity, year, productLine.type, distillery.prestige, brand.prestige, productLine.modifiers),
+      purchasePrice: Math.floor(this.calculateValue(age, proof, rarity, year, productLine.type, distillery.prestige, brand.prestige, productLine.modifiers) * (0.6 + Math.random() * 0.2)),
       discoveredFields: []
     };
   }

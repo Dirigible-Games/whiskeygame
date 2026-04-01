@@ -707,9 +707,13 @@ const Tag = ({ label, empty, glow, isScanning }: { label: string; empty?: boolea
 );
 
 const StatCell = ({ label, value, compact, glow }: { label: string; value: string; compact?: boolean; glow?: 'success' | 'fail' }) => (
-  <div className={`relative flex flex-col items-center justify-center bg-whiskey-dark rounded-lg border border-whiskey-light ${compact ? 'p-0.5' : 'p-2'}`}>
+  <div className={`relative flex flex-col items-center justify-center bg-whiskey-dark rounded-lg border border-whiskey-light overflow-hidden ${compact ? 'p-0.5' : 'p-2'}`}>
     <span className={`${compact ? 'text-[6px]' : 'text-[10px]'} uppercase font-bold text-whiskey-amber opacity-60`}>{label}</span>
-    <span className={`${compact ? 'text-[9px]' : 'text-sm'} font-black text-whiskey-gold`}>{value}</span>
+    <div className="w-full flex items-center justify-center h-[20px]">
+      <AutoScalingText maxFontSize={compact ? 9 : 14} minFontSize={5} className="font-black text-whiskey-gold w-full text-center px-0.5">
+        {value}
+      </AutoScalingText>
+    </div>
     <AnimatePresence>
       {glow && (
         <motion.div 
