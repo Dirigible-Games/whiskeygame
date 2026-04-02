@@ -5,6 +5,7 @@ export const LABEL_FONTS = ['modern', 'classic', 'vintage', 'technical', 'bold']
 export const CAP_TYPES = ['screw', 'cork', 'wax', 'glass'];
 
 export const MODIFIERS = {
+  USA: ['Wheated', 'Bottled-in-Bond', 'Single Barrel', 'Small Batch', 'Cask Strength'],
   SCOTCH: ['Peated', 'Sherry Matured', 'Port Finish', 'Cask Strength'],
   IRISH: ['3x Distilled', 'Pot Still', 'Small Batch'],
   JAPANESE: ['Mizunara Cask', 'Double Matured', 'Small Batch'],

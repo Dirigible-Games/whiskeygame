@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight } from 'lucide-react';
 
-export type TutorialStep = 'welcome' | 'shop_overview' | 'first_customer' | 'first_deal' | null;
+export type TutorialStep = 'welcome' | 'shop_overview' | 'first_customer' | 'first_deal' | 'vault_intro' | null;
 
 interface ContextualTutorialProps {
   step: TutorialStep;
@@ -94,6 +94,20 @@ const TUTORIAL_CONTENT: Record<NonNullable<TutorialStep>, { title: string; conte
       title: "Final Actions",
       content: "When you're ready, Send your Counter Offer. If the price is right, you can Accept. If the deal starts to go sour, you can Walk Away."
     }
+  ],
+  vault_intro: [
+    {
+      title: "The Vault",
+      content: "You've reached a level of prestige where you can now curate a private collection in your Vault. Access it from the new tab at the bottom of the screen."
+    },
+    {
+      title: "Trophy Cases",
+      content: "The Vault features Trophy Cases with specific completion criteria. Move bottles from your inventory to the Vault to complete these sets."
+    },
+    {
+      title: "Whales & Collectors",
+      content: "Completed Trophy Cases will attract high-paying 'Whale' customers who will offer a premium for your curated bottles. They also increase the frequency of Expert and Collector customers visiting your shop."
+    }
   ]
 };
 
@@ -106,7 +120,8 @@ export const ContextualTutorial: React.FC<ContextualTutorialProps> = ({ step, pa
   const isTopPosition = 
     (step === 'shop_overview') || // All shop overview items are lower half
     (step === 'first_customer') || // Conversation buttons are at the bottom
-    (step === 'first_deal' && page >= 5); // Negotiation actions are at the bottom
+    (step === 'first_deal' && page >= 5) || // Negotiation actions are at the bottom
+    (step === 'vault_intro'); // Nav bar is at the bottom
 
   return (
     <>

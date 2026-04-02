@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bottle, Brand, Rarity, ReleaseType } from '../types';
+import { Bottle, Brand, Rarity, ReleaseType, ParentDistillery } from '../types';
 import { getAgeDisplay } from '../engine';
 import { Search, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';

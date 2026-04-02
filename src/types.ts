@@ -141,6 +141,8 @@ export interface Customer {
   specificInterest: WhiskeyType | null; // Preference for a type
   baseOfferMultiplier: number;
   sociability: number; // 0 to 100 (how much they enjoy small talk)
+  isWhale?: boolean;
+  targetVaultBottleId?: string;
 }
 
 export interface ShopTier {
@@ -252,6 +254,13 @@ export interface DailyStats {
   bestDealProfit: number;
 }
 
+export interface MarketTrendState {
+  trendId: string | undefined;
+  daysRemaining: number;
+  nextTrendDay?: number;
+  hasSeenTrendModal?: boolean;
+}
+
 export interface GameState {
   shopName: string;
   money: number;
@@ -279,12 +288,15 @@ export interface GameState {
   codex: CodexState;
   auctionState?: AuctionState;
   dailyStats: DailyStats;
+  vault: Bottle[];
+  hasSeenVaultTutorial: boolean;
   tutorialProgress?: {
     welcomeSeen?: boolean;
     shopOverviewSeen?: boolean;
     firstCustomerSeen?: boolean;
     firstDealSeen?: boolean;
   };
+  marketTrend?: MarketTrendState;
 }
 
 export interface SaveSlot {
@@ -297,6 +309,8 @@ export interface Settings {
   musicVolume: number;
   soundVolume: number;
 }
+
+export type CustomNameData = Record<Region, { prefixes: string[], suffixes: string[], firstNames: string[], lastNames: string[] }>;
 
 export interface NegotiationState {
   customer: Customer;

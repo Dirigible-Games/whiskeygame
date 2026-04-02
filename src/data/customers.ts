@@ -5,13 +5,13 @@ export const CUSTOMER_NAMES = [
   'Kevin', 'Linda', 'Michael', 'Nora', 'Oscar', 'Patricia', 'Quincy', 'Rachel', 'Samuel', 'Theresa'
 ];
 
-export const CUSTOMER_PERSONALITY_WEIGHTS = (shopLevel: number, reputation: number): Record<CustomerPersonality, number> => ({
+export const CUSTOMER_PERSONALITY_WEIGHTS = (shopLevel: number, reputation: number, completedSets: number = 0): Record<CustomerPersonality, number> => ({
   [CustomerPersonality.NOVICE]: Math.max(5, 40 - (shopLevel * 5) - (reputation / 4)),
   [CustomerPersonality.DESPERATE]: Math.max(5, 30 - (shopLevel * 4)),
   [CustomerPersonality.BARGAIN_HUNTER]: Math.max(2, 25 - (reputation / 6)),
   [CustomerPersonality.EASYGOING]: 20,
   [CustomerPersonality.SKEPTIC]: 10 + (shopLevel * 2),
   [CustomerPersonality.GREEDY]: 5 + (shopLevel * 4),
-  [CustomerPersonality.EXPERT]: 2 + (shopLevel * 6) + (reputation / 8),
-  [CustomerPersonality.COLLECTOR]: 1 + (shopLevel * 5) + (reputation / 5),
+  [CustomerPersonality.EXPERT]: Math.min(30, 2 + (shopLevel * 6) + (reputation / 8) + (completedSets * 5)),
+  [CustomerPersonality.COLLECTOR]: Math.min(25, 1 + (shopLevel * 5) + (reputation / 5) + (completedSets * 3)),
 });

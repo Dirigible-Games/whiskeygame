@@ -6,15 +6,18 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { WhiskeyEngine, CURRENT_YEAR } from './engine';
 import { NEGOTIATION_TACTICS } from './data/tactics';
-import { Bottle, GameState, NegotiationState, Customer, CustomerPersonality, NegotiationPhase, Message, DialogueOption, Rarity, SaveSlot, Settings, WhiskeyType, TransactionRecord, Tactic, SkillInfo, Brand, ParentDistillery, AuctionState, AuctionBidEvent, DistilleryCategory, ReleaseType, DistilleryCodexEntry, ProductLineKnowledge, BrandKnowledge, CodexState, DailyStats } from './types';
+import { Bottle, GameState, NegotiationState, Customer, CustomerPersonality, NegotiationPhase, Message, DialogueOption, Rarity, SaveSlot, Settings, WhiskeyType, TransactionRecord, Tactic, SkillInfo, Brand, ParentDistillery, AuctionState, AuctionBidEvent, DistilleryCategory, ReleaseType, DistilleryCodexEntry, ProductLineKnowledge, BrandKnowledge, CodexState, DailyStats, CustomNameData, MarketTrendState } from './types';
+import { MARKET_TRENDS } from './data/trends';
 import { BottleCard } from './components/BottleCard';
 import { ShopIllustration } from './components/ShopIllustration';
 import { StoreInterior } from './components/StoreInterior';
 import { ContextualTutorial } from './components/ContextualTutorial';
+import { MarketTrendModal } from './components/MarketTrendModal';
 import { SplashScreen } from './components/SplashScreen';
+import { NameEditor } from './components/NameEditor';
 import { soundSystem } from './SoundSystem';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, BookOpen, Sparkles, RefreshCw, Trash2, Wallet, Calendar, User, MessageSquare, Check, X, Send, Package, TrendingUp, ArrowUpCircle, Settings as SettingsIcon, Save, Play, Plus, Minus, LogOut, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, ChevronLeft, Wrench, AlertTriangle, Search, Star } from 'lucide-react';
+import { ShoppingBag, BookOpen, Sparkles, RefreshCw, Trash2, Wallet, Calendar, User, MessageSquare, Check, X, Send, Package, TrendingUp, ArrowUpCircle, Settings as SettingsIcon, Save, Play, Plus, Minus, LogOut, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, ChevronLeft, Wrench, AlertTriangle, Search, Star, Edit3 } from 'lucide-react';
 import { SHOP_TIERS, TOOLKIT_ITEMS } from './constants';
 
 const AuctionView = ({ state, bottle, onAccept, onEndDay, isLastBottle, totalBottles, engine, gameState }: { 
@@ -195,8 +198,88 @@ const AuctionView = ({ state, bottle, onAccept, onEndDay, isLastBottle, totalBot
   );
 };
 
+interface TrophyCase {
+  id: string;
+  name: string;
+  description: string;
+  checkCompletion: (vault: Bottle[]) => boolean;
+  getQualifyingBottles: (vault: Bottle[]) => Bottle[];
+}
+
+const TROPHY_CASES: TrophyCase[] = [
+  {
+    id: 'centurion',
+    name: 'The Centurion Club',
+    description: 'Display 3 bottles aged 20 years or older.',
+    checkCompletion: (vault) => vault.filter(b => b.age >= 20).length >= 3,
+    getQualifyingBottles: (vault) => vault.filter(b => b.age >= 20)
+  },
+  {
+    id: 'ambassador',
+    name: 'The Global Ambassador',
+    description: 'Display bottles from 4 different regions.',
+    checkCompletion: (vault) => new Set(vault.map(b => b.region)).size >= 4,
+    getQualifyingBottles: (vault) => {
+      const regions = new Set<string>();
+      const bottles: Bottle[] = [];
+      vault.forEach(b => {
+        if (!regions.has(b.region)) {
+          regions.add(b.region);
+          bottles.push(b);
+        }
+      });
+      return bottles;
+    }
+  },
+  {
+    id: 'unicorn',
+    name: 'The Unicorn Pen',
+    description: 'Display 2 Unicorn rarity bottles.',
+    checkCompletion: (vault) => vault.filter(b => b.rarity === Rarity.UNICORN).length >= 2,
+    getQualifyingBottles: (vault) => vault.filter(b => b.rarity === Rarity.UNICORN)
+  },
+  {
+    id: 'time_capsule',
+    name: 'The Time Capsule',
+    description: 'Display 3 bottles from different decades.',
+    checkCompletion: (vault) => new Set(vault.map(b => Math.floor(b.year / 10) * 10)).size >= 3,
+    getQualifyingBottles: (vault) => {
+      const decades = new Set<number>();
+      const bottles: Bottle[] = [];
+      vault.forEach(b => {
+        const decade = Math.floor(b.year / 10) * 10;
+        if (!decades.has(decade)) {
+          decades.add(decade);
+          bottles.push(b);
+        }
+      });
+      return bottles;
+    }
+  }
+];
+
 export default function App() {
-  const engine = useMemo(() => new WhiskeyEngine(), []);
+  const [customNames, setCustomNames] = useState<CustomNameData | undefined>(() => {
+    const saved = localStorage.getItem('whiskey_custom_names');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse custom names", e);
+      }
+    }
+    return undefined;
+  });
+
+  const engine = useMemo(() => {
+    const eng = new WhiskeyEngine();
+    eng.setCustomNames(customNames);
+    return eng;
+  }, []);
+
+  useEffect(() => {
+    engine.setCustomNames(customNames);
+  }, [customNames, engine]);
   
   const [gameState, setGameState] = useState<GameState>(() => {
     const world = engine.getWorld();
@@ -240,6 +323,14 @@ export default function App() {
         bottlesPurchased: 0,
         bottlesSold: 0,
         bestDealProfit: 0,
+      },
+      vault: [],
+      hasSeenVaultTutorial: false,
+      marketTrend: {
+        trendId: undefined,
+        daysRemaining: 0,
+        nextTrendDay: 3 + Math.floor(Math.random() * 3),
+        hasSeenTrendModal: true
       }
     };
   });
@@ -278,15 +369,30 @@ export default function App() {
 
   const [selectedCodexDistillery, setSelectedCodexDistillery] = useState<ParentDistillery | null>(null);
   const [selectedCodexBrand, setSelectedCodexBrand] = useState<Brand | null>(null);
-  const [view, setView] = useState<'main-menu' | 'inventory' | 'codex' | 'shop' | 'skills' | 'expansion' | 'tools'>('main-menu');
+  const [view, setView] = useState<'main-menu' | 'inventory' | 'codex' | 'shop' | 'skills' | 'expansion' | 'tools' | 'vault' | 'name-editor'>('main-menu');
   const [showSplash, setShowSplash] = useState(true);
   const [isSelectingAuctionBottles, setIsSelectingAuctionBottles] = useState(false);
+  const [isTrendModalOpen, setIsTrendModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [activeTutorial, setActiveTutorial] = useState<'welcome' | 'shop_overview' | 'first_customer' | 'first_deal' | null>(null);
+  const [activeTutorial, setActiveTutorial] = useState<'welcome' | 'shop_overview' | 'first_customer' | 'first_deal' | 'vault_intro' | null>(null);
   const [tutorialPage, setTutorialPage] = useState(0);
   const [isNamingShop, setIsNamingShop] = useState(false);
   const [tempShopName, setTempShopName] = useState("");
+
+  useEffect(() => {
+    if (gameState.marketTrend?.trendId && !gameState.marketTrend.hasSeenTrendModal) {
+      setIsTrendModalOpen(true);
+      setGameState(prev => ({
+        ...prev,
+        marketTrend: {
+          ...prev.marketTrend!,
+          hasSeenTrendModal: true
+        }
+      }));
+    }
+  }, [gameState.marketTrend?.trendId, gameState.marketTrend?.hasSeenTrendModal]);
+
   const [isSkipTutorials, setIsSkipTutorials] = useState(false);
   const [currentSlotId, setCurrentSlotId] = useState<number | null>(null);
   
@@ -422,6 +528,9 @@ export default function App() {
         setActiveTutorial(null);
         setGameState(prev => ({ ...prev, tutorialProgress: { ...prev.tutorialProgress, firstDealSeen: true } }));
       }
+    } else if (activeTutorial === 'vault_intro') {
+      setActiveTutorial(null);
+      setGameState(prev => ({ ...prev, hasSeenVaultTutorial: true }));
     }
   };
 
@@ -473,6 +582,8 @@ export default function App() {
       money: 2000,
       day: 1,
       inventory: [],
+      vault: [],
+      hasSeenVaultTutorial: false,
       reputation: 0,
       negativeReputationDays: 0,
       isShopOpen: false,
@@ -553,6 +664,13 @@ export default function App() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [negotiation?.messages]);
+
+  useEffect(() => {
+    if (gameState.shopLevel >= 4 && !gameState.hasSeenVaultTutorial && !activeTutorial) {
+      setActiveTutorial('vault_intro');
+      setTutorialPage(0);
+    }
+  }, [gameState.shopLevel, gameState.hasSeenVaultTutorial, activeTutorial]);
 
   useEffect(() => {
     if (!gameState.isAuctionDay || !gameState.auctionState || gameState.auctionState.isFinished) return;
@@ -736,15 +854,37 @@ export default function App() {
       return;
     }
 
-    const customer = engine.generateCustomer(gameState.shopLevel, gameState.reputation);
+    const completedSets = TROPHY_CASES.filter(tc => tc.checkCompletion(gameState.vault || [])).length;
+    let customer = engine.generateCustomer(gameState.shopLevel, gameState.reputation, completedSets);
     
+    // Whale logic
+    const vault = gameState.vault || [];
+    let isWhaleSpawn = false;
+    let whaleTargetBottle: Bottle | null = null;
+    
+    if (completedSets > 0 && vault.length > 0 && Math.random() < 0.15) {
+      // Find all qualifying bottles from completed sets
+      const qualifyingBottles = TROPHY_CASES
+        .filter(tc => tc.checkCompletion(vault))
+        .flatMap(tc => tc.getQualifyingBottles(vault));
+        
+      if (qualifyingBottles.length > 0) {
+        isWhaleSpawn = true;
+        whaleTargetBottle = qualifyingBottles[Math.floor(Math.random() * qualifyingBottles.length)];
+        customer.isWhale = true;
+        customer.targetVaultBottleId = whaleTargetBottle.id;
+        customer.name = "Arthur Pendelton (Whale)";
+        customer.budget = engine.getMarketValue(whaleTargetBottle, gameState.marketTrend) * 5;
+      }
+    }
+
     // Dynamic buyer probability based on inventory size:
     // Base 15% + 5% per bottle, capped at 60%.
     const inventory = gameState.inventory || [];
     const auctionBottleIds = gameState.auctionBottleIds || [];
     const buyerProbability = Math.min(0.6, 0.15 + (inventory.length * 0.05));
     const isAuctionCustomer = gameState.isAuctionDay && auctionBottleIds.length > 0;
-    const canBuyFromPlayer = isAuctionCustomer || (inventory.length > 0 && Math.random() < buyerProbability);
+    const canBuyFromPlayer = isWhaleSpawn || isAuctionCustomer || (inventory.length > 0 && Math.random() < buyerProbability);
 
     setGameState(prev => {
       const newState = { 
@@ -760,7 +900,9 @@ export default function App() {
       // Customer wants to buy from player
       let bottleToSell: Bottle;
       
-      if (isAuctionCustomer) {
+      if (isWhaleSpawn && whaleTargetBottle) {
+        bottleToSell = whaleTargetBottle;
+      } else if (isAuctionCustomer) {
         const bottleId = (gameState.auctionBottleIds || [])[0];
         bottleToSell = (gameState.inventory || []).find(b => b.id === bottleId)!;
         // Remove from auction list for next customer
@@ -774,11 +916,19 @@ export default function App() {
       }
 
       const isKnown = (gameState.knownCustomerNames || []).includes(customer.name);
-      const neg = engine.startNegotiation(customer, bottleToSell, false, isKnown);
+      const neg = engine.startNegotiation(customer, bottleToSell, false, isKnown, gameState.marketTrend);
       discoverBottle(bottleToSell, engine.getBrand(bottleToSell.brandId));
       
       // If auction, give a premium starting offer
-      if (isAuctionCustomer) {
+      if (isWhaleSpawn) {
+        neg.customerPrice = Math.floor(engine.getMarketValue(bottleToSell, gameState.marketTrend) * 3.5);
+        neg.messages.push({
+          id: Math.random().toString(36).substr(2, 9),
+          sender: 'customer',
+          text: `I saw that magnificent piece in your Vault. I simply must have it for my private collection. I'm prepared to offer $${neg.customerPrice.toLocaleString()} right now.`,
+          timestamp: Date.now()
+        });
+      } else if (isAuctionCustomer) {
         neg.customerPrice = Math.floor(neg.customerPrice * 1.25);
         neg.messages.push({
           id: Math.random().toString(36).substr(2, 9),
@@ -800,7 +950,7 @@ export default function App() {
       // Customer wants to sell to player
       const bottle = engine.generateRandomBottle(currentTier.rarityWeights, gameState.shopLevel);
       const isKnown = (gameState.knownCustomerNames || []).includes(customer.name);
-      const neg = engine.startNegotiation(customer, bottle, true, isKnown);
+      const neg = engine.startNegotiation(customer, bottle, true, isKnown, gameState.marketTrend);
       discoverBottle(bottle, engine.getBrand(bottle.brandId));
       setNegotiation(neg);
       setIsEditingOffer(false);
@@ -1200,6 +1350,7 @@ export default function App() {
           ...prev,
           money: prev.money + price,
           inventory: (prev.inventory || []).filter(b => b.id !== negotiation.bottle.id),
+          vault: (prev.vault || []).filter(b => b.id !== negotiation.bottle.id),
           transactionHistory: newHistory,
           dailyStats: {
             ...prev.dailyStats,
@@ -1275,7 +1426,7 @@ export default function App() {
     if (!negotiation) return;
 
     const newTurn = negotiation.turn + 1;
-    const tolerance = (negotiation.bottle.value * 0.15) * (negotiation.customer.patience / 50);
+    const tolerance = (engine.getMarketValue(negotiation.bottle, gameState.marketTrend) * 0.15) * (negotiation.customer.patience / 50);
 
     if (amount <= 0) return;
 
@@ -1639,6 +1790,23 @@ export default function App() {
       gameOverReason = 'reputation';
     }
 
+    // Market Trend Logic
+    let newTrendState: MarketTrendState = { ...(gameState.marketTrend || { trendId: undefined, daysRemaining: 0, nextTrendDay: 3 }) };
+    if (newTrendState.daysRemaining > 0) {
+      newTrendState.daysRemaining--;
+      if (newTrendState.daysRemaining === 0) {
+        newTrendState.trendId = undefined;
+        newTrendState.nextTrendDay = newDay + 2 + Math.floor(Math.random() * 4);
+      }
+    } else if (newDay >= (newTrendState.nextTrendDay || 0)) {
+      // Start a new trend
+      const trend = MARKET_TRENDS[Math.floor(Math.random() * MARKET_TRENDS.length)];
+      newTrendState.trendId = trend.id;
+      newTrendState.daysRemaining = 3 + Math.floor(Math.random() * 4); // 3-6 days
+      newTrendState.nextTrendDay = 0;
+      newTrendState.hasSeenTrendModal = false;
+    }
+
     const newState: GameState = { 
       ...gameState, 
       day: newDay, 
@@ -1652,6 +1820,7 @@ export default function App() {
       negativeReputationDays: newNegativeReputationDays,
       isGameOver: newGameOver,
       gameOverReason: gameOverReason,
+      marketTrend: newTrendState,
       dailyStats: {
         profit: 0,
         bottlesPurchased: 0,
@@ -1689,7 +1858,7 @@ export default function App() {
     let auctionState: AuctionState | undefined;
     if (firstBottle) {
       const bidders = engine.getAuctionBidders(gameState.shopLevel);
-      const finalBid = engine.getAuctionFinalBid(firstBottle, gameState.shopLevel, bidders);
+      const finalBid = engine.getAuctionFinalBid(firstBottle, gameState.shopLevel, bidders, gameState.marketTrend);
       const startBid = Math.floor(finalBid * 0.3);
       const duration = 30000;
       auctionState = {
@@ -1746,7 +1915,7 @@ export default function App() {
       const nextBottleId = gameState.auctionBottleIds[nextIndex];
       const nextBottle = gameState.inventory.find(b => b.id === nextBottleId)!;
       const bidders = engine.getAuctionBidders(gameState.shopLevel);
-      const finalBid = engine.getAuctionFinalBid(nextBottle, gameState.shopLevel, bidders);
+      const finalBid = engine.getAuctionFinalBid(nextBottle, gameState.shopLevel, bidders, gameState.marketTrend);
       const startBid = Math.floor(finalBid * 0.3);
       const duration = 30000;
       nextAuctionState = {
@@ -1812,14 +1981,14 @@ export default function App() {
         <AnimatePresence>
           {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         </AnimatePresence>
-        <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div className="h-[100dvh] bg-whiskey-dark text-stone-200 font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Placeholder Logo */}
         <motion.div 
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="relative z-10 mb-6 text-center"
+          className="relative z-10 mb-4 sm:mb-6 text-center"
         >
-          <div className="w-64 h-64 sm:w-80 sm:h-80 mx-auto mb-4 relative">
+          <div className="w-48 h-48 sm:w-64 sm:h-64 mx-auto mb-2 sm:mb-4 relative">
             <img 
               src="/logo.png" 
               alt="Vintage Spirits Logo" 
@@ -1882,6 +2051,13 @@ export default function App() {
 
         {/* Bottom Buttons */}
         <div className="mt-6 flex gap-4 relative z-10">
+          <button 
+            onClick={() => setView('name-editor')}
+            className="px-5 py-2 bg-whiskey-medium border border-whiskey-light text-stone-300 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-whiskey-dark transition-all flex items-center gap-2"
+          >
+            <Edit3 size={14} />
+            Customize Names
+          </button>
           <button 
             onClick={() => setIsOptionsOpen(true)}
             className="px-5 py-2 bg-whiskey-medium border border-whiskey-light text-stone-300 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-whiskey-dark transition-all flex items-center gap-2"
@@ -1963,6 +2139,8 @@ export default function App() {
               inGame={view !== 'main-menu'}
               money={gameState.money}
               onUpdateMoney={(m) => setGameState(prev => ({ ...prev, money: m }))}
+              reputation={gameState.reputation}
+              onUpdateReputation={(r) => setGameState(prev => ({ ...prev, reputation: r }))}
             />
           )}
         </AnimatePresence>
@@ -2018,10 +2196,36 @@ export default function App() {
     );
   }
 
+  if (view === 'name-editor') {
+    return (
+      <NameEditor 
+        initialData={customNames}
+        onSave={(data) => {
+          setCustomNames(data);
+          if (data) {
+            localStorage.setItem('whiskey_custom_names', JSON.stringify(data));
+          } else {
+            localStorage.removeItem('whiskey_custom_names');
+          }
+          setView('main-menu');
+        }}
+        onCancel={() => setView('main-menu')}
+      />
+    );
+  }
+
   return (
     <>
       <AnimatePresence>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        {gameState.marketTrend?.trendId && (
+          <MarketTrendModal 
+            isOpen={isTrendModalOpen}
+            onClose={() => setIsTrendModalOpen(false)}
+            trend={MARKET_TRENDS.find(t => t.id === gameState.marketTrend?.trendId)!}
+            daysRemaining={gameState.marketTrend.daysRemaining}
+          />
+        )}
       </AnimatePresence>
       <div className="min-h-screen bg-whiskey-dark text-stone-200 font-sans pb-12">
       {/* Header */}
@@ -2030,7 +2234,18 @@ export default function App() {
           <div className="flex items-center gap-3">
             <div className="min-w-0">
               <h1 className="text-xs sm:text-sm font-black tracking-tighter uppercase leading-none text-whiskey-gold truncate max-w-[120px] sm:max-w-none">{gameState.shopName}</h1>
-              <p className="text-[9px] sm:text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-1">Day {gameState.day}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[9px] sm:text-[10px] text-stone-400 font-bold uppercase tracking-widest">Day {gameState.day}</p>
+                {gameState.marketTrend?.trendId && (
+                  <button 
+                    onClick={() => setIsTrendModalOpen(true)}
+                    className="p-1 bg-whiskey-gold/20 text-whiskey-gold rounded-full border border-whiskey-gold/30 hover:bg-whiskey-gold/40 transition-all cursor-pointer shadow-lg shadow-whiskey-gold/10"
+                    title={`${MARKET_TRENDS.find(t => t.id === gameState.marketTrend?.trendId)?.name} (${gameState.marketTrend.daysRemaining} days left)`}
+                  >
+                    <TrendingUp size={12} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           
@@ -2595,6 +2810,8 @@ export default function App() {
               inGame={view !== 'main-menu'}
               money={gameState.money}
               onUpdateMoney={(m) => setGameState(prev => ({ ...prev, money: m }))}
+              reputation={gameState.reputation}
+              onUpdateReputation={(r) => setGameState(prev => ({ ...prev, reputation: r }))}
             />
           )}
         </AnimatePresence>
@@ -2728,6 +2945,21 @@ export default function App() {
                     negotiation={true}
                     showPurchasePrice={true}
                   />
+                  {gameState.shopLevel >= 4 && (
+                    <button 
+                      onClick={() => {
+                        setGameState(prev => ({
+                          ...prev,
+                          inventory: (prev.inventory || []).filter(b => b.id !== bottle.id),
+                          vault: [...(prev.vault || []), bottle]
+                        }));
+                      }}
+                      className="absolute -top-2 -left-2 bg-whiskey-gold text-whiskey-dark p-2 rounded-full shadow-lg hover:bg-whiskey-amber transition-colors z-10 flex items-center gap-1"
+                      title="Move to Vault"
+                    >
+                      <Star size={16} className="fill-whiskey-dark" />
+                    </button>
+                  )}
                   {!bottle.rarityDiscovered && (
                     <button 
                       onClick={() => handleResearchBottle(bottle)}
@@ -2741,6 +2973,71 @@ export default function App() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {view === 'vault' && (
+          <div className="flex flex-col gap-6 items-center">
+            <div className="w-full max-w-md bg-whiskey-medium p-4 rounded-2xl border border-whiskey-light shadow-2xl">
+              <h2 className="text-xl font-black text-whiskey-gold uppercase tracking-tighter mb-2 text-center">Trophy Cases</h2>
+              <p className="text-[10px] text-stone-400 text-center mb-4 leading-tight">
+                Complete these sets by placing the right bottles in your Vault. Completed sets attract high-paying Collectors and Experts to your shop.
+              </p>
+              <div className="space-y-3">
+                {TROPHY_CASES.map(tc => {
+                  const isCompleted = tc.checkCompletion(gameState.vault || []);
+                  return (
+                    <div key={tc.id} className={`p-3 rounded-xl border ${isCompleted ? 'border-whiskey-gold bg-whiskey-gold/10' : 'border-whiskey-light/30 bg-whiskey-dark/50'}`}>
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className={`text-sm font-black uppercase tracking-tight ${isCompleted ? 'text-whiskey-gold' : 'text-stone-300'}`}>
+                          {tc.name}
+                        </h3>
+                        {isCompleted && <Star size={14} className="text-whiskey-gold fill-whiskey-gold" />}
+                      </div>
+                      <p className="text-[10px] text-stone-400">{tc.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="w-full max-w-md">
+              <h2 className="text-lg font-black text-white uppercase tracking-tighter mb-4 text-center">Your Vault</h2>
+              <div className="flex flex-col gap-6 items-center">
+                {(gameState.vault || []).length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Star className="text-stone-500 mx-auto mb-2" size={24} />
+                    <p className="text-stone-500 font-medium text-sm">Your vault is empty.</p>
+                  </div>
+                ) : (
+                  (gameState.vault || []).map((bottle) => (
+                    <div key={bottle.id} className="relative w-full max-w-[280px]">
+                      <BottleCard 
+                        bottle={bottle} 
+                        brand={engine.getBrand(bottle.brandId)} 
+                        distillery={engine.getDistillery(engine.getBrand(bottle.brandId)?.parentDistilleryId || '')}
+                        distilleryResearchLevel={gameState.codex?.discoveredDistilleries?.[engine.getBrand(bottle.brandId)?.parentDistilleryId || '']?.researchLevel || 0}
+                        negotiation={true}
+                        showPurchasePrice={true}
+                      />
+                      <button 
+                        onClick={() => {
+                          setGameState(prev => ({
+                            ...prev,
+                            vault: (prev.vault || []).filter(b => b.id !== bottle.id),
+                            inventory: [...(prev.inventory || []), bottle]
+                          }));
+                        }}
+                        className="absolute -top-2 -left-2 bg-stone-600 text-white p-2 rounded-full shadow-lg hover:bg-stone-500 transition-colors z-10 flex items-center gap-1"
+                        title="Return to Inventory"
+                      >
+                        <ShoppingBag size={16} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -2864,7 +3161,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className={`fixed bottom-0 left-0 right-0 bg-whiskey-medium border-t border-whiskey-light px-2 sm:px-4 py-1 h-10 flex justify-between items-center ${activeTutorial === 'shop_overview' && tutorialPage >= 2 ? 'z-[200]' : 'z-50'} shadow-[0_-4px_20px_rgba(0,0,0,0.2)] overflow-visible`}>
+      <nav className={`fixed bottom-0 left-0 right-0 bg-whiskey-medium border-t border-whiskey-light px-2 sm:px-4 py-1 h-10 flex justify-between items-center ${(activeTutorial === 'shop_overview' && tutorialPage >= 2) || activeTutorial === 'vault_intro' ? 'z-[200]' : 'z-50'} shadow-[0_-4px_20px_rgba(0,0,0,0.2)] overflow-visible`}>
         {/* Local Spotlight Overlay */}
         {activeTutorial === 'shop_overview' && tutorialPage >= 2 && (
           <div className="absolute inset-0 bg-black/60 z-[150] pointer-events-none" />
@@ -2911,6 +3208,16 @@ export default function App() {
           label="Codex" 
           highlight={activeTutorial === 'shop_overview' && tutorialPage === 6}
         />
+        {gameState.shopLevel >= 4 && (
+          <NavButton 
+            active={view === 'vault'} 
+            onClick={() => setView('vault')} 
+            icon={<Star size={16} />} 
+            label="Vault" 
+            badge={(gameState.vault || []).length > 0 ? (gameState.vault || []).length : undefined}
+            highlight={activeTutorial === 'vault_intro' && tutorialPage === 0}
+          />
+        )}
       </nav>
 
       {/* Codex Modals */}
@@ -3617,17 +3924,21 @@ const NavButton = ({ active, onClick, icon, label, badge, highlight }: { active:
   </button>
 );
 
-const OptionsMenu = ({ settings, onClose, onUpdate, onReturnToMenu, inGame, money, onUpdateMoney }: { 
+const OptionsMenu = ({ settings, onClose, onUpdate, onReturnToMenu, inGame, money, onUpdateMoney, reputation, onUpdateReputation }: { 
   settings: Settings, 
   onClose: () => void, 
   onUpdate: (s: Partial<Settings>) => void,
   onReturnToMenu: () => void,
   inGame: boolean,
   money: number,
-  onUpdateMoney: (m: number) => void
+  onUpdateMoney: (m: number) => void,
+  reputation: number,
+  onUpdateReputation: (r: number) => void
 }) => {
   const [isEditingMoney, setIsEditingMoney] = useState(false);
   const [moneyInput, setMoneyInput] = useState(money.toString());
+  const [isEditingReputation, setIsEditingReputation] = useState(false);
+  const [reputationInput, setReputationInput] = useState(reputation.toString());
 
   const handleMoneySubmit = () => {
     const val = parseInt(moneyInput);
@@ -3635,6 +3946,14 @@ const OptionsMenu = ({ settings, onClose, onUpdate, onReturnToMenu, inGame, mone
       onUpdateMoney(val);
     }
     setIsEditingMoney(false);
+  };
+
+  const handleReputationSubmit = () => {
+    const val = parseInt(reputationInput);
+    if (!isNaN(val)) {
+      onUpdateReputation(val);
+    }
+    setIsEditingReputation(false);
   };
 
   return (
@@ -3737,6 +4056,35 @@ const OptionsMenu = ({ settings, onClose, onUpdate, onReturnToMenu, inGame, mone
                 </span>
               )}
               <button onClick={() => onUpdateMoney(money + 1000)} className="text-whiskey-money"><Plus size={14} /></button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between bg-whiskey-dark p-3 rounded-xl border border-whiskey-light">
+            <p className="text-xs font-bold text-stone-400">Reputation</p>
+            <div className="flex items-center gap-3">
+              <button onClick={() => onUpdateReputation(Math.max(0, reputation - 10))} className="text-red-400"><Minus size={14} /></button>
+              {isEditingReputation ? (
+                <input
+                  autoFocus
+                  type="number"
+                  value={reputationInput}
+                  onChange={(e) => setReputationInput(e.target.value)}
+                  onBlur={handleReputationSubmit}
+                  onKeyDown={(e) => e.key === 'Enter' && handleReputationSubmit()}
+                  className="w-24 bg-whiskey-dark border border-whiskey-gold rounded px-1 text-sm font-black text-blue-400 text-center focus:outline-none"
+                />
+              ) : (
+                <span 
+                  onClick={() => {
+                    setReputationInput(reputation.toString());
+                    setIsEditingReputation(true);
+                  }}
+                  className="text-sm font-black text-blue-400 cursor-pointer hover:text-whiskey-gold transition-colors"
+                >
+                  {reputation}%
+                </span>
+              )}
+              <button onClick={() => onUpdateReputation(reputation + 10)} className="text-blue-400"><Plus size={14} /></button>
             </div>
           </div>
         </div>

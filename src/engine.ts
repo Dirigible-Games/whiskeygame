@@ -22,6 +22,8 @@ import {
   DialogueOption
 } from './types';
 import { MIDDLE_INITIALS, REGIONAL_NAMES, REGION_TYPE_MAP } from './data/names';
+import { CustomNameData, MarketTrendState } from './types';
+import { MARKET_TRENDS } from './data/trends';
 
 import { CUSTOMER_NAMES, CUSTOMER_PERSONALITY_WEIGHTS } from './data/customers';
 import { DIALOGUE_RESPONSES, TACTIC_RESPONSES } from './data/dialogue';
@@ -51,9 +53,27 @@ export class WhiskeyEngine {
   private brands: Brand[] = [];
   private productLines: ProductLine[] = [];
   private bottleStatsCache: Record<string, Partial<Bottle>> = {};
+  private customNames?: CustomNameData;
 
   constructor() {
     this.generateWorld();
+  }
+
+  public setCustomNames(customNames?: CustomNameData) {
+    this.customNames = customNames;
+  }
+
+  private getComponents(region: Region) {
+    const base = REGIONAL_NAMES[region];
+    if (!this.customNames) return base;
+    
+    return {
+      ...base,
+      prefixes: this.customNames[region]?.prefixes?.length > 0 ? this.customNames[region].prefixes : base.prefixes,
+      suffixes: this.customNames[region]?.suffixes?.length > 0 ? this.customNames[region].suffixes : base.suffixes,
+      firstNames: this.customNames[region]?.firstNames?.length > 0 ? this.customNames[region].firstNames : base.firstNames,
+      lastNames: this.customNames[region]?.lastNames?.length > 0 ? this.customNames[region].lastNames : base.lastNames,
+    };
   }
 
   public regenerateWorld() {
@@ -80,7 +100,7 @@ export class WhiskeyEngine {
   }
 
   private generateDistilleryName(region: Region): string {
-    const components = REGIONAL_NAMES[region];
+    const components = this.getComponents(region);
     const rand = Math.random();
     
     if (rand < 0.4) {
@@ -98,7 +118,7 @@ export class WhiskeyEngine {
   }
 
   private generateBrandName(region: Region): string {
-    const components = REGIONAL_NAMES[region];
+    const components = this.getComponents(region);
     const rand = Math.random();
 
     // Pattern 1: First Name + [Middle Initial] + Last Name (e.g. "John Q. Public", "J. Public", "John Public")
@@ -280,6 +300,10 @@ export class WhiskeyEngine {
       this.productLines.push(this.createProductLine(brand, "Standard", type, 80, 3, [], Rarity.COMMON, ReleaseType.CORE));
       this.productLines.push(this.createProductLine(brand, "Premium Reserve", type, 90, 8, ['Small Batch'], Rarity.UNCOMMON, ReleaseType.CORE, 5));
     } else if (region === Region.USA) {
+      const isWheated = Math.random() < 0.15; // 15% chance for a wheated brand
+      const brandModifiers = isWheated ? ['Wheated'] : [];
+      const type = isWheated ? WhiskeyType.BOURBON : possibleTypes[0]; // Wheated is almost always bourbon in this context
+
       if (category === DistilleryCategory.LEGACY) {
         // 3-4 core products, 4-8 modified versions, a few special releases
         const coreNames = ['Standard', 'Small Batch', 'Single Barrel', 'Reserve'];
@@ -288,7 +312,10 @@ export class WhiskeyEngine {
           const name = coreNames[i % coreNames.length];
           const age = 4 + (i * 2);
           const proof = 90 + (i * 5);
-          const mods = i === 1 ? ['Small Batch'] : i === 2 ? ['SiB'] : [];
+          const mods = [...brandModifiers];
+          if (i === 1) mods.push('Small Batch');
+          if (i === 2) mods.push('Single Barrel');
+          
           this.productLines.push(this.createProductLine(brand, name, type, proof, age, mods, i < 2 ? Rarity.COMMON : Rarity.UNCOMMON, ReleaseType.CORE));
         }
 
@@ -304,7 +331,7 @@ export class WhiskeyEngine {
             type, 
             90 + Math.floor(Math.random() * 20), 
             6 + Math.floor(Math.random() * 6), 
-            [finish], 
+            [...brandModifiers, finish], 
             Rarity.RARE, 
             ReleaseType.LIMITED, 
             startOffset, 
@@ -320,7 +347,7 @@ export class WhiskeyEngine {
             type, 
             120 + Math.floor(Math.random() * 15), 
             12 + Math.floor(Math.random() * 10), 
-            ['Special Release', 'Cask Strength'], 
+            [...brandModifiers, 'Special Release', 'Cask Strength'], 
             Rarity.EPIC, 
             ReleaseType.SPECIAL, 
             Math.floor(Math.random() * 60),
@@ -331,16 +358,16 @@ export class WhiskeyEngine {
         const coreCount = 2 + Math.floor(Math.random() * 2);
         for (let i = 0; i < coreCount; i++) {
           const age = 4 + (i * 2);
-          this.productLines.push(this.createProductLine(brand, i === 0 ? "Select" : "Reserve", type, 90 + (i * 4), age, [], i === 0 ? Rarity.COMMON : Rarity.UNCOMMON, ReleaseType.CORE));
+          this.productLines.push(this.createProductLine(brand, i === 0 ? "Select" : "Reserve", type, 90 + (i * 4), age, [...brandModifiers], i === 0 ? Rarity.COMMON : Rarity.UNCOMMON, ReleaseType.CORE));
         }
         if (Math.random() < 0.6) {
-          this.productLines.push(this.createProductLine(brand, "Barrel Proof", type, 115 + Math.floor(Math.random() * 10), 6, ['Cask Strength'], Rarity.RARE, ReleaseType.LIMITED, 10));
+          this.productLines.push(this.createProductLine(brand, "Barrel Proof", type, 115 + Math.floor(Math.random() * 10), 6, [...brandModifiers, 'Cask Strength'], Rarity.RARE, ReleaseType.LIMITED, 10));
         }
       } else {
         // Young craft: 1-2 core releases, maybe 1 modified version
-        this.productLines.push(this.createProductLine(brand, "Craft Batch", type, 92, 2, [], Rarity.COMMON, ReleaseType.CORE));
+        this.productLines.push(this.createProductLine(brand, "Craft Batch", type, 92, 2, [...brandModifiers], Rarity.COMMON, ReleaseType.CORE));
         if (Math.random() < 0.5) {
-          this.productLines.push(this.createProductLine(brand, "Single Cask", type, 118, 3, ['SiB', 'Cask Strength'], Rarity.UNCOMMON, ReleaseType.CORE, 2));
+          this.productLines.push(this.createProductLine(brand, "Single Cask", type, 118, 3, [...brandModifiers, 'Single Barrel', 'Cask Strength'], Rarity.UNCOMMON, ReleaseType.CORE, 2));
         }
       }
     }
@@ -694,7 +721,7 @@ export class WhiskeyEngine {
     return RARITY_ORDER[currentRank];
   }
 
-  public calculateApparentValue(bottle: Bottle, discoveredFields: string[]): number {
+  public calculateApparentValue(bottle: Bottle, discoveredFields: string[], trendState?: MarketTrendState): number {
     const brand = this.getBrand(bottle.brandId)!;
     const distillery = this.distilleries.find(d => d.id === brand.parentDistilleryId)!;
 
@@ -713,7 +740,7 @@ export class WhiskeyEngine {
     const age = discoveredFields.includes('age') ? bottle.age : 0;
     const proof = discoveredFields.includes('proof') ? bottle.proof : 80;
 
-    return this.calculateValue(
+    const baseValue = this.calculateValue(
       age,
       proof,
       rarity,
@@ -723,6 +750,15 @@ export class WhiskeyEngine {
       brand.prestige,
       revealedModifiers
     );
+
+    let finalValue = baseValue;
+    if (trendState && trendState.trendId) {
+      const trend = MARKET_TRENDS.find(t => t.id === trendState.trendId);
+      if (trend) {
+        finalValue = Math.floor(finalValue * trend.calculateMultiplier(bottle));
+      }
+    }
+    return finalValue;
   }
 
   private calculateValue(
@@ -782,8 +818,8 @@ export class WhiskeyEngine {
     return enumValues[randomIndex];
   }
 
-  public generateCustomer(shopLevel: number = 1, reputation: number = 0): Customer {
-    const weights = CUSTOMER_PERSONALITY_WEIGHTS(shopLevel, reputation);
+  public generateCustomer(shopLevel: number = 1, reputation: number = 0, completedSets: number = 0): Customer {
+    const weights = CUSTOMER_PERSONALITY_WEIGHTS(shopLevel, reputation, completedSets);
 
     const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
@@ -892,13 +928,26 @@ export class WhiskeyEngine {
     };
   }
 
+  public getMarketValue(bottle: Bottle, trendState?: MarketTrendState): number {
+    let value = bottle.value;
+    if (trendState && trendState.trendId) {
+      const trend = MARKET_TRENDS.find(t => t.id === trendState.trendId);
+      if (trend) {
+        value = Math.floor(value * trend.calculateMultiplier(bottle));
+      }
+    }
+    return value;
+  }
+
   public startNegotiation(
     customer: Customer, 
     bottle: Bottle, 
     isPlayerBuying: boolean,
-    isKnown: boolean
+    isKnown: boolean,
+    trendState?: MarketTrendState
   ): NegotiationState {
-    const baseValue = bottle.value;
+    const marketValue = this.getMarketValue(bottle, trendState);
+    const baseValue = marketValue;
     let customerPrice: number;
 
     if (isPlayerBuying) {
@@ -1385,18 +1434,20 @@ export class WhiskeyEngine {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  public getAuctionFinalBid(bottle: Bottle, shopLevel: number, bidderCount: number): number {
+  public getAuctionFinalBid(bottle: Bottle, shopLevel: number, bidderCount: number, trendState?: MarketTrendState): number {
     const floor = 0.3 + (shopLevel - 1) * (0.65 - 0.3) / 5;
     const ceiling = 1.1 + (shopLevel - 1) * (1.5 - 1.1) / 5;
     
     // Using a slightly modified version of prestige factors for auction frenzy
     const rarityBonus = RARITY_PRESTIGE_FACTORS[bottle.rarity] * 0.5;
 
+    const marketValue = this.getMarketValue(bottle, trendState);
+
     let highestBid = 0;
     for (let i = 0; i < bidderCount; i++) {
       let bidMultiplier = Math.random() * (ceiling - floor) + floor;
       bidMultiplier += rarityBonus * Math.random();
-      const bid = Math.floor(bottle.value * bidMultiplier);
+      const bid = Math.floor(marketValue * bidMultiplier);
       if (bid > highestBid) highestBid = bid;
     }
     
