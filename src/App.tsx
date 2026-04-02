@@ -14,7 +14,7 @@ import { ContextualTutorial } from './components/ContextualTutorial';
 import { SplashScreen } from './components/SplashScreen';
 import { soundSystem } from './SoundSystem';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, BookOpen, Sparkles, RefreshCw, Trash2, Wallet, Calendar, User, MessageSquare, Check, X, Send, Package, TrendingUp, ArrowUpCircle, Settings as SettingsIcon, Save, Play, Plus, Minus, LogOut, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, ChevronLeft, Wrench, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, BookOpen, Sparkles, RefreshCw, Trash2, Wallet, Calendar, User, MessageSquare, Check, X, Send, Package, TrendingUp, ArrowUpCircle, Settings as SettingsIcon, Save, Play, Plus, Minus, LogOut, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, ChevronLeft, Wrench, AlertTriangle, Search, Star } from 'lucide-react';
 import { SHOP_TIERS, TOOLKIT_ITEMS } from './constants';
 
 const AuctionView = ({ state, bottle, onAccept, onEndDay, isLastBottle, totalBottles, engine, gameState }: { 
@@ -28,6 +28,8 @@ const AuctionView = ({ state, bottle, onAccept, onEndDay, isLastBottle, totalBot
   gameState: GameState
 }) => {
   const brand = bottle ? engine.getBrand(bottle.brandId) : null;
+  const distillery = brand ? engine.getDistillery(brand.parentDistilleryId) : null;
+  const researchLevel = distillery ? gameState.codex?.discoveredDistilleries?.[distillery.id]?.researchLevel || 0 : 0;
   const [now, setNow] = useState(Date.now());
 
   const productLine = bottle ? gameState.productLines.find(pl => pl.id === bottle.productLineId) : null;
@@ -134,6 +136,8 @@ const AuctionView = ({ state, bottle, onAccept, onEndDay, isLastBottle, totalBot
             <BottleCard 
               bottle={bottle} 
               brand={brand} 
+              distillery={distillery}
+              distilleryResearchLevel={researchLevel}
               negotiation={true} 
               showPurchasePrice={true} 
             />
@@ -1824,9 +1828,9 @@ export default function App() {
             />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">
-            Vintage <span className="text-whiskey-gold">Spirits</span>
+            Taters <span className="text-whiskey-gold">Treasures</span>
           </h1>
-          <p className="text-stone-400 uppercase tracking-widest text-[10px] font-bold mt-2">The Ultimate Whiskey Merchant Sim</p>
+          <p className="text-stone-400 uppercase tracking-widest text-[10px] font-bold mt-2">Buy N Sell Yer Booze</p>
         </motion.div>
 
         {/* Save Slots */}
@@ -2253,6 +2257,8 @@ export default function App() {
                             <BottleCard 
                               bottle={negotiation.bottle} 
                               brand={engine.getBrand(negotiation.bottle.brandId)} 
+                              distillery={engine.getDistillery(engine.getBrand(negotiation.bottle.brandId)?.parentDistilleryId || '')}
+                              distilleryResearchLevel={gameState.codex?.discoveredDistilleries?.[engine.getBrand(negotiation.bottle.brandId)?.parentDistilleryId || '']?.researchLevel || 0}
                               negotiation={true}
                               showPurchasePrice={!negotiation.isPlayerBuying}
                               revealedFields={negotiation.revealedFields}
@@ -2406,10 +2412,10 @@ export default function App() {
                         </div>
                       ) : (
                         <>
-                          <div className={`flex flex-col gap-2 ${activeTutorial === 'first_deal' && tutorialPage === 5 ? 'z-[200] relative shadow-[0_0_40px_rgba(255,191,0,0.4),inset_0_0_25px_rgba(255,191,0,0.2)] rounded-xl bg-whiskey-gold/10' : ''}`}>
-                            <div className="flex justify-between items-stretch bg-whiskey-dark p-1.5 rounded-xl border border-whiskey-light shadow-inner gap-2">
-                              <div className="flex-1 bg-whiskey-medium/30 p-2 rounded-lg border border-whiskey-light/30 flex flex-col justify-center">
-                                <p className="text-[6px] font-black text-stone-500 uppercase tracking-[0.2em] mb-1">
+                          <div className={`flex flex-col gap-1 ${activeTutorial === 'first_deal' && tutorialPage === 5 ? 'z-[200] relative shadow-[0_0_40px_rgba(255,191,0,0.4),inset_0_0_25px_rgba(255,191,0,0.2)] rounded-xl bg-whiskey-gold/10' : ''}`}>
+                            <div className="flex justify-between items-stretch bg-whiskey-dark p-1 rounded-xl border border-whiskey-light shadow-inner gap-1.5">
+                              <div className="flex-1 bg-whiskey-medium/30 p-1.5 rounded-lg border border-whiskey-light/30 flex flex-col justify-center">
+                                <p className="text-[6px] font-black text-stone-500 uppercase tracking-[0.2em] mb-0.5">
                                   {negotiation.isPlayerBuying ? "THEIR ASKING PRICE" : "THEIR OFFER"}
                                 </p>
                                 <p className={`text-sm font-black ${negotiation.isPlayerBuying ? 'text-whiskey-gold' : 'text-whiskey-buy-light'} leading-none`}>
@@ -2417,24 +2423,24 @@ export default function App() {
                                 </p>
                               </div>
 
-                              <div className="w-10 flex flex-col items-center justify-center bg-whiskey-dark border border-whiskey-light/50 rounded-lg">
+                              <div className="w-8 flex flex-col items-center justify-center bg-whiskey-dark border border-whiskey-light/50 rounded-lg py-0.5">
                                  <p className="text-[5px] font-black text-stone-500 uppercase tracking-widest">Turn</p>
                                  <p className="text-xs font-black text-whiskey-amber leading-none">{negotiation.turn}</p>
                               </div>
 
-                              <div className="flex-1 bg-whiskey-medium/30 p-2 rounded-lg border border-whiskey-light/30 flex flex-col justify-center text-right">
-                                <p className="text-[6px] font-black text-stone-500 uppercase tracking-[0.2em] mb-1">
+                              <div className="flex-1 bg-whiskey-medium/30 p-1.5 rounded-lg border border-whiskey-light/30 flex flex-col justify-center text-right">
+                                <p className="text-[6px] font-black text-stone-500 uppercase tracking-[0.2em] mb-0.5">
                                   {negotiation.isPlayerBuying ? "YOUR BID" : "YOUR ASKING PRICE"}
                                 </p>
-                                <div className="flex items-center justify-end gap-1.5">
+                                <div className="flex items-center justify-end gap-1">
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       adjustPrice(-10);
                                     }}
-                                    className="w-5 h-5 flex items-center justify-center bg-whiskey-medium border border-whiskey-light rounded-md hover:bg-whiskey-light/20 transition-colors active:scale-90"
+                                    className="w-4 h-4 flex items-center justify-center bg-whiskey-medium border border-whiskey-light rounded-md hover:bg-whiskey-light/20 transition-colors active:scale-90"
                                   >
-                                    <Minus size={10} className="text-stone-400" />
+                                    <Minus size={8} className="text-stone-400" />
                                   </button>
                                   
                                   <p 
@@ -2442,7 +2448,7 @@ export default function App() {
                                       setOfferInput(negotiation.currentOffer.toString());
                                       setIsEditingOffer(true);
                                     }}
-                                    className="text-sm font-black text-whiskey-money leading-none cursor-pointer hover:text-whiskey-gold transition-colors min-w-[50px] text-center"
+                                    className="text-sm font-black text-whiskey-money leading-none cursor-pointer hover:text-whiskey-gold transition-colors min-w-[40px] text-center"
                                   >
                                     ${negotiation.currentOffer.toLocaleString()}
                                   </p>
@@ -2452,9 +2458,9 @@ export default function App() {
                                       e.stopPropagation();
                                       adjustPrice(10);
                                     }}
-                                    className="w-5 h-5 flex items-center justify-center bg-whiskey-medium border border-whiskey-light rounded-md hover:bg-whiskey-light/20 transition-colors active:scale-90"
+                                    className="w-4 h-4 flex items-center justify-center bg-whiskey-medium border border-whiskey-light rounded-md hover:bg-whiskey-light/20 transition-colors active:scale-90"
                                   >
-                                    <Plus size={10} className="text-stone-400" />
+                                    <Plus size={8} className="text-stone-400" />
                                   </button>
                                 </div>
                               </div>
@@ -2539,6 +2545,8 @@ export default function App() {
                       <BottleCard 
                         bottle={bottle} 
                         brand={engine.getBrand(bottle.brandId)} 
+                        distillery={engine.getDistillery(engine.getBrand(bottle.brandId)?.parentDistilleryId || '')}
+                        distilleryResearchLevel={gameState.codex?.discoveredDistilleries?.[engine.getBrand(bottle.brandId)?.parentDistilleryId || '']?.researchLevel || 0}
                         negotiation={true} 
                         showPurchasePrice={true} 
                       />
@@ -2715,6 +2723,8 @@ export default function App() {
                   <BottleCard 
                     bottle={bottle} 
                     brand={engine.getBrand(bottle.brandId)} 
+                    distillery={engine.getDistillery(engine.getBrand(bottle.brandId)?.parentDistilleryId || '')}
+                    distilleryResearchLevel={gameState.codex?.discoveredDistilleries?.[engine.getBrand(bottle.brandId)?.parentDistilleryId || '']?.researchLevel || 0}
                     negotiation={true}
                     showPurchasePrice={true}
                   />
@@ -2927,7 +2937,16 @@ export default function App() {
                     <ChevronLeft size={20} className="mr-1" /> Back to {selectedCodexDistillery.name}
                   </button>
                 ) : (
-                  <h2 className="text-2xl font-black text-white uppercase tracking-tighter">{selectedCodexDistillery.name}</h2>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center">
+                    {selectedCodexDistillery.name}
+                    {(gameState.codex?.discoveredDistilleries[selectedCodexDistillery.id]?.researchLevel || 0) >= 1 && (
+                      <span className="inline-flex items-center ml-3">
+                        {Array.from({ length: selectedCodexDistillery.prestige }).map((_, i) => (
+                          <Star key={i} size={16} className="fill-whiskey-gold text-whiskey-gold" />
+                        ))}
+                      </span>
+                    )}
+                  </h2>
                 )}
                 <button onClick={() => { setSelectedCodexDistillery(null); setSelectedCodexBrand(null); }} className="text-stone-400 hover:text-white">
                   <X size={24} />
@@ -2939,7 +2958,16 @@ export default function App() {
                 {selectedCodexBrand ? (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-3xl font-black text-whiskey-gold uppercase tracking-tighter mb-2">{selectedCodexBrand.name}</h3>
+                      <h3 className="text-3xl font-black text-whiskey-gold uppercase tracking-tighter mb-2 flex items-center">
+                        {selectedCodexBrand.name}
+                        {(gameState.codex?.discoveredDistilleries[selectedCodexDistillery.id]?.researchLevel || 0) >= 2 && (
+                          <span className="inline-flex items-center ml-3">
+                            {Array.from({ length: selectedCodexBrand.prestige }).map((_, i) => (
+                              <Star key={i} size={20} className="fill-whiskey-gold text-whiskey-gold" />
+                            ))}
+                          </span>
+                        )}
+                      </h3>
                       <p className="text-sm text-stone-400 font-bold uppercase tracking-widest">
                         Est. {gameState.codex?.discoveredBrands?.[selectedCodexBrand.id]?.minKnownYear || '????'} {gameState.codex?.discoveredBrands?.[selectedCodexBrand.id]?.maxKnownYear ? `- ${gameState.codex.discoveredBrands[selectedCodexBrand.id].maxKnownYear}` : ''}
                       </p>
@@ -3031,6 +3059,105 @@ export default function App() {
                       </div>
                     </div>
 
+                    {(() => {
+                      const researchLevel = gameState.codex?.discoveredDistilleries[selectedCodexDistillery.id]?.researchLevel || 0;
+                      const researchCosts = [0, 500, 2500, 10000];
+                      const researchTitles = ["None", "Public Records", "Brand Portfolio", "Product Line Deep-Dive"];
+                      const researchDesc = [
+                        "",
+                        "Reveals exact founding/closing years, region, category, and distillery prestige.",
+                        "Reveals all brands produced by this distillery and their prestige.",
+                        "Reveals all product lines, base ages, proofs, and modifiers."
+                      ];
+                      
+                      const nextLevel = researchLevel + 1;
+                      const canResearch = nextLevel <= 3;
+                      const cost = researchCosts[nextLevel];
+
+                      if (!canResearch) return null;
+
+                      return (
+                        <div className="bg-whiskey-dark p-4 rounded-xl border border-whiskey-light/50 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                          <div>
+                            <h4 className="text-sm font-black text-whiskey-gold uppercase tracking-widest mb-1">
+                              Research: {researchTitles[nextLevel]}
+                            </h4>
+                            <p className="text-[10px] text-stone-400 leading-tight">
+                              {researchDesc[nextLevel]}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (gameState.money >= cost) {
+                                soundSystem.playEffect('cash');
+                                setGameState(prev => {
+                                  const newState = { ...prev, money: prev.money - cost };
+                                  const codex = newState.codex!;
+                                  const distEntry = codex.discoveredDistilleries[selectedCodexDistillery.id];
+                                  
+                                  if (distEntry) {
+                                    distEntry.researchLevel = nextLevel;
+                                    
+                                    if (nextLevel >= 1) {
+                                      distEntry.foundedYearKnown = true;
+                                      distEntry.statusKnown = true;
+                                      distEntry.categoryKnown = true;
+                                      distEntry.regionKnown = true;
+                                    }
+                                    
+                                    if (nextLevel >= 2) {
+                                      const allBrands = engine.getAllBrands().filter(b => b.parentDistilleryId === selectedCodexDistillery.id);
+                                      allBrands.forEach(b => {
+                                        if (!codex.discoveredBrands[b.id]) {
+                                          codex.discoveredBrands[b.id] = {
+                                            id: b.id,
+                                            minKnownYear: b.startYear,
+                                            maxKnownYear: b.endYear
+                                          };
+                                        }
+                                      });
+                                    }
+                                    
+                                    if (nextLevel >= 3) {
+                                      const allBrands = engine.getAllBrands().filter(b => b.parentDistilleryId === selectedCodexDistillery.id);
+                                      allBrands.forEach(b => {
+                                        const pls = engine.getWorld().productLines.filter(pl => pl.brandId === b.id);
+                                        pls.forEach(pl => {
+                                          if (Array.isArray(codex.discoveredProductLines)) {
+                                            const oldArr = [...codex.discoveredProductLines];
+                                            codex.discoveredProductLines = {};
+                                            oldArr.forEach(id => {
+                                              codex.discoveredProductLines[id as string] = { baseAgeKnown: true, baseProofKnown: true, modifiersKnown: [] };
+                                            });
+                                          }
+                                          
+                                          if (!codex.discoveredProductLines[pl.id]) {
+                                            codex.discoveredProductLines[pl.id] = {
+                                              baseAgeKnown: true,
+                                              baseProofKnown: true,
+                                              modifiersKnown: pl.modifiers
+                                            };
+                                          }
+                                        });
+                                      });
+                                    }
+                                  }
+                                  return newState;
+                                });
+                              } else {
+                                soundSystem.playEffect('error');
+                              }
+                            }}
+                            disabled={gameState.money < cost}
+                            className="shrink-0 bg-whiskey-gold hover:bg-whiskey-amber disabled:opacity-50 text-whiskey-dark px-4 py-2 rounded-lg font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-colors"
+                          >
+                            <Search size={14} />
+                            Research (${cost.toLocaleString()})
+                          </button>
+                        </div>
+                      );
+                    })()}
+
                     <div className="space-y-4">
                       <h4 className="text-lg font-bold text-white uppercase tracking-widest border-b border-whiskey-light/50 pb-2">Brands</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3047,7 +3174,16 @@ export default function App() {
                               className="bg-whiskey-medium p-4 rounded-xl border border-whiskey-light hover:border-whiskey-gold transition-colors text-left group flex justify-between items-center"
                             >
                               <div>
-                                <h5 className="text-base font-black text-white uppercase tracking-tighter group-hover:text-whiskey-gold transition-colors">{brand.name}</h5>
+                                <h5 className="text-base font-black text-white uppercase tracking-tighter group-hover:text-whiskey-gold transition-colors flex items-center">
+                                  {brand.name}
+                                  {(gameState.codex?.discoveredDistilleries[selectedCodexDistillery.id]?.researchLevel || 0) >= 2 && (
+                                    <span className="inline-flex items-center ml-2">
+                                      {Array.from({ length: brand.prestige }).map((_, i) => (
+                                        <Star key={i} size={12} className="fill-whiskey-gold text-whiskey-gold" />
+                                      ))}
+                                    </span>
+                                  )}
+                                </h5>
                                 <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Est. {knowledge.minKnownYear || '????'} {knowledge.maxKnownYear ? `- ${knowledge.maxKnownYear}` : ''}</p>
                               </div>
                               <ChevronRight size={20} className="text-stone-500 group-hover:text-whiskey-gold transition-colors" />

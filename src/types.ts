@@ -206,6 +206,7 @@ export interface DistilleryCodexEntry {
   statusKnown: boolean;
   categoryKnown: boolean;
   regionKnown: boolean;
+  researchLevel?: number; // 0: None, 1: Public Records, 2: Brand Portfolio, 3: Product Lines, 4: Masterclass
 }
 
 export interface BrandKnowledge {

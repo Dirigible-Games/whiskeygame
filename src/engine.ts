@@ -406,7 +406,26 @@ export class WhiskeyEngine {
   }
 
   public generateRandomBottle(rarityWeights?: Record<Rarity, number>, shopLevel: number = 1): Bottle {
-    const productLine = this.productLines[Math.floor(Math.random() * this.productLines.length)];
+    const bucket = this.getVintageBucket(shopLevel);
+    const targetMinYear = CURRENT_YEAR - bucket.maxAge;
+    const targetMaxYear = CURRENT_YEAR - bucket.minAge;
+
+    // Filter product lines that can potentially satisfy this bucket
+    // A product line can satisfy it if its startYear <= targetMaxYear
+    // and its maxVintageYear >= targetMinYear
+    let validProductLines = this.productLines.filter(p => {
+      const pStart = p.startYear;
+      const pEnd = p.endYear || CURRENT_YEAR;
+      const maxV = Math.min(pEnd, CURRENT_YEAR - p.baseAge);
+      return pStart <= targetMaxYear && maxV >= targetMinYear;
+    });
+
+    if (validProductLines.length === 0) {
+      // Fallback if no product lines match (rare, but possible if the world is very young)
+      validProductLines = this.productLines;
+    }
+
+    const productLine = validProductLines[Math.floor(Math.random() * validProductLines.length)];
     const brand = this.brands.find(b => b.id === productLine.brandId)!;
     const distillery = this.distilleries.find(d => d.id === brand.parentDistilleryId)!;
     const type = productLine.type;
@@ -426,15 +445,23 @@ export class WhiskeyEngine {
     
     // Min vintage year: Usually tied to startYear, BUT if it's sourced (startYear > maxVintageYear), 
     // we just go back a bit further from maxVintageYear.
-    let minVintageYear = Math.max(productLine.startYear, CURRENT_YEAR - (shopLevel * 15) - age);
+    let minVintageYear = productLine.startYear;
     if (minVintageYear > maxVintageYear) {
       // Sourced whiskey! The vintage is older than the product line's start year.
       minVintageYear = maxVintageYear - Math.floor(Math.random() * 5); // Distilled 0-5 years before the absolute latest possible date
     }
 
-    // Bias towards more recent years
-    const yearRand = 1 - Math.pow(Math.random(), 4);
-    const year = Math.floor(yearRand * (maxVintageYear - minVintageYear + 1)) + minVintageYear;
+    // Now constrain the target bucket years by the product line's actual min/max
+    const finalMinYear = Math.max(targetMinYear, minVintageYear);
+    const finalMaxYear = Math.min(targetMaxYear, maxVintageYear);
+
+    let year: number;
+    if (finalMinYear > finalMaxYear) {
+      // Fallback if constraints clash
+      year = Math.floor(Math.random() * (maxVintageYear - minVintageYear + 1)) + minVintageYear;
+    } else {
+      year = Math.floor(Math.random() * (finalMaxYear - finalMinYear + 1)) + finalMinYear;
+    }
 
     const rarity = this.calculateRarity(age, year, distillery.category, distillery.region, modifiers, distillery.prestige, brand.prestige, rarityWeights, shopLevel);
 
@@ -458,6 +485,58 @@ export class WhiskeyEngine {
       purchasePrice: Math.floor(this.calculateValue(age, proof, rarity, year, productLine.type, distillery.prestige, brand.prestige, productLine.modifiers) * (0.6 + Math.random() * 0.2)),
       discoveredFields: []
     };
+  }
+
+  private getVintageBucket(shopLevel: number): { minAge: number, maxAge: number } {
+    const distributions: Record<number, { minAge: number, maxAge: number, weight: number }[]> = {
+      1: [
+        { minAge: 0, maxAge: 9, weight: 90 },
+        { minAge: 10, maxAge: 29, weight: 6 },
+        { minAge: 30, maxAge: 49, weight: 3.5 },
+        { minAge: 50, maxAge: 69, weight: 0.49 },
+        { minAge: 70, maxAge: 200, weight: 0.01 }
+      ],
+      2: [
+        { minAge: 0, maxAge: 9, weight: 81.25 },
+        { minAge: 10, maxAge: 29, weight: 10.75 },
+        { minAge: 30, maxAge: 49, weight: 7.0 },
+        { minAge: 50, maxAge: 69, weight: 0.8675 },
+        { minAge: 70, maxAge: 200, weight: 0.1325 }
+      ],
+      3: [
+        { minAge: 0, maxAge: 9, weight: 72.5 },
+        { minAge: 10, maxAge: 29, weight: 15.5 },
+        { minAge: 30, maxAge: 49, weight: 10.5 },
+        { minAge: 50, maxAge: 69, weight: 1.245 },
+        { minAge: 70, maxAge: 200, weight: 0.255 }
+      ],
+      4: [
+        { minAge: 0, maxAge: 9, weight: 63.75 },
+        { minAge: 10, maxAge: 29, weight: 20.25 },
+        { minAge: 30, maxAge: 49, weight: 14.0 },
+        { minAge: 50, maxAge: 69, weight: 1.6225 },
+        { minAge: 70, maxAge: 200, weight: 0.3775 }
+      ],
+      5: [
+        { minAge: 0, maxAge: 9, weight: 55 },
+        { minAge: 10, maxAge: 29, weight: 25 },
+        { minAge: 30, maxAge: 49, weight: 17.5 },
+        { minAge: 50, maxAge: 69, weight: 2.0 },
+        { minAge: 70, maxAge: 200, weight: 0.5 }
+      ]
+    };
+
+    const dist = distributions[shopLevel] || distributions[1];
+    const roll = Math.random() * 100;
+    let cumulative = 0;
+    
+    for (const bucket of dist) {
+      cumulative += bucket.weight;
+      if (roll < cumulative) {
+        return { minAge: bucket.minAge, maxAge: bucket.maxAge };
+      }
+    }
+    return { minAge: dist[0].minAge, maxAge: dist[0].maxAge };
   }
 
   private getAgeRange(type: WhiskeyType) {
@@ -521,9 +600,8 @@ export class WhiskeyEngine {
     if (rand < 0.60) return Rarity.COMMON;
     if (rand < 0.85) return Rarity.UNCOMMON;
     if (rand < 0.95) return Rarity.RARE;
-    if (rand < 0.98) return Rarity.EPIC;
-    if (rand < 0.995) return Rarity.LEGENDARY;
-    return Rarity.UNICORN;
+    if (rand < 0.99) return Rarity.EPIC;
+    return Rarity.LEGENDARY;
   }
 
   private calculateRarity(
@@ -537,6 +615,12 @@ export class WhiskeyEngine {
     weights?: Record<Rarity, number>,
     shopLevel: number = 1
   ): Rarity {
+    const yearsOld = CURRENT_YEAR - year;
+
+    // Strict Unicorn Gating
+    if (yearsOld >= 70) return Rarity.UNICORN;
+    if (distilleryPrestige >= 5 && modifiers.includes('Special Release')) return Rarity.UNICORN;
+
     // Base roll
     let rarity = weights ? this.weightedRarity(weights) : this.randomRarity();
     const getRank = (r: Rarity) => RARITY_ORDER.indexOf(r);
@@ -555,13 +639,6 @@ export class WhiskeyEngine {
       else if (age >= 18) bonusScore += 2;
       else if (age >= 15) bonusScore += 1;
     }
-
-    // Vintage Bonus
-    const yearsOld = CURRENT_YEAR - year;
-    if (yearsOld >= 60) bonusScore += 4;
-    else if (yearsOld >= 45) bonusScore += 3;
-    else if (yearsOld >= 30) bonusScore += 2;
-    else if (yearsOld >= 20) bonusScore += 1;
 
     // Prestige Bonus
     if (distilleryPrestige >= 5) bonusScore += 1;
@@ -588,8 +665,6 @@ export class WhiskeyEngine {
     }
 
     // Calculate rank bump (probabilistic)
-    // Every 3 points of bonusScore is a guaranteed rank bump
-    // The remainder is a chance for another bump
     let rankBump = Math.floor(bonusScore / 3);
     const remainder = (bonusScore % 3) / 3;
     if (Math.random() < remainder) {
@@ -602,6 +677,20 @@ export class WhiskeyEngine {
     const maxRankBump = shopLevel <= 1 ? 1 : shopLevel <= 3 ? 2 : 5;
     currentRank = Math.min(RARITY_ORDER.length - 1, currentRank + Math.min(rankBump, maxRankBump));
     
+    // Apply Vintage Rarity Floors
+    if (yearsOld >= 50) {
+      currentRank = Math.max(currentRank, getRank(Rarity.LEGENDARY));
+    } else if (yearsOld >= 30) {
+      currentRank = Math.max(currentRank, getRank(Rarity.EPIC));
+    } else if (yearsOld >= 20) {
+      currentRank = Math.max(currentRank, getRank(Rarity.RARE));
+    }
+
+    // Ensure we don't accidentally return Unicorn if it didn't meet the strict gating
+    if (currentRank === getRank(Rarity.UNICORN) && yearsOld < 70 && !(distilleryPrestige >= 5 && modifiers.includes('Special Release'))) {
+      currentRank = getRank(Rarity.LEGENDARY);
+    }
+
     return RARITY_ORDER[currentRank];
   }
 

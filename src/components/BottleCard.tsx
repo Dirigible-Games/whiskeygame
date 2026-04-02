@@ -6,9 +6,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bottle, Brand, Rarity, ReleaseType } from '../types';
 import { getAgeDisplay } from '../engine';
-import { Search } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AutoScalingText } from './AutoScalingText';
 
 interface BottleImageProps {
   brand?: Brand;
@@ -197,6 +196,8 @@ export const BottleImage: React.FC<BottleImageProps> = ({ brand, bottle }) => {
 interface BottleCardProps {
   bottle: Bottle;
   brand?: Brand;
+  distillery?: ParentDistillery;
+  distilleryResearchLevel?: number;
   compact?: boolean;
   negotiation?: boolean;
   revealedFields?: string[];
@@ -223,6 +224,8 @@ const INSPECTION_STEPS = [
 export const BottleCard: React.FC<BottleCardProps> = ({ 
   bottle, 
   brand, 
+  distillery,
+  distilleryResearchLevel = 0,
   compact, 
   negotiation, 
   revealedFields, 
@@ -457,13 +460,32 @@ export const BottleCard: React.FC<BottleCardProps> = ({
 
     const line3 = isRevealed('type') ? bottle.type : '?';
 
+    const renderStars = (count: number) => {
+      return (
+        <span className="inline-flex items-center ml-1">
+          {Array.from({ length: count }).map((_, i) => (
+            <Star key={i} size={8} className="fill-whiskey-gold text-whiskey-gold" />
+          ))}
+        </span>
+      );
+    };
+
     return (
       <div className="flex flex-col gap-0.5">
-        <div className="leading-tight">{line1.join(' ')}</div>
+        <div className="leading-tight flex items-center justify-center flex-wrap gap-x-1">
+          <span>{line1.join(' ')}</span>
+          {brand && distilleryResearchLevel >= 2 && renderStars(brand.prestige)}
+        </div>
         <div className="text-[0.75em] text-whiskey-amber/80 h-[1.2em] leading-none font-sans uppercase tracking-wider">
           {line2.join(' ')}
         </div>
         <div className="leading-tight">{line3}</div>
+        {distillery && (
+          <div className="text-[0.6em] text-whiskey-amber/60 font-sans uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
+            Distilled by: {distillery.name}
+            {distilleryResearchLevel >= 1 && renderStars(distillery.prestige)}
+          </div>
+        )}
       </div>
     );
   };
@@ -580,7 +602,7 @@ export const BottleCard: React.FC<BottleCardProps> = ({
       )}
 
       {/* Tag Columns - Vertically Centered in the Card */}
-      <div className={`absolute left-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 w-[85px] ${highlightedSection === 'left_cells' ? 'z-[200] shadow-[0_0_25px_rgba(255,255,255,0.2),inset_0_0_15px_rgba(255,255,255,0.1)] rounded-lg bg-white/5' : 'z-10'}`}>
+      <div className={`absolute left-1.5 top-[40%] -translate-y-1/2 flex flex-col gap-1 w-[85px] ${highlightedSection === 'left_cells' ? 'z-[200] shadow-[0_0_25px_rgba(255,255,255,0.2),inset_0_0_15px_rgba(255,255,255,0.1)] rounded-lg bg-white/5' : 'z-10'}`}>
         <Tag 
           label={isRevealed('region') ? bottle.region : '?'} 
           glow={stepGlow?.field === 'region' ? (stepGlow.success ? 'success' : 'fail') : undefined}
@@ -594,7 +616,7 @@ export const BottleCard: React.FC<BottleCardProps> = ({
           glow={stepGlow?.field === 'rarity' ? (stepGlow.success ? 'success' : 'fail') : undefined}
         />
       </div>
-      <div className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 w-[85px] ${highlightedSection === 'right_cells' ? 'z-[200] shadow-[0_0_25px_rgba(255,255,255,0.2),inset_0_0_15px_rgba(255,255,255,0.1)] rounded-lg bg-white/5' : 'z-10'}`}>
+      <div className={`absolute right-1.5 top-[40%] -translate-y-1/2 flex flex-col gap-1 w-[85px] ${highlightedSection === 'right_cells' ? 'z-[200] shadow-[0_0_25px_rgba(255,255,255,0.2),inset_0_0_15px_rgba(255,255,255,0.1)] rounded-lg bg-white/5' : 'z-10'}`}>
         {[0, 1, 2].map((slotIdx) => {
           // Get all revealed modifiers and pack them at the top
           const revealedModifierIndices = [0, 1, 2].filter(i => isRevealed(`modifiers_${i}`));
@@ -639,15 +661,15 @@ export const BottleCard: React.FC<BottleCardProps> = ({
 
       <div className={`flex-1 flex flex-col ${negotiation ? 'p-1' : 'p-4'} ${isUnicorn ? 'bg-whiskey-medium rounded-[10px]' : ''}`}>
         {/* Top Section: Image */}
-        <div className={`flex justify-center items-center ${negotiation ? 'mb-0.5 min-h-[160px]' : 'mb-4 min-h-[180px]'}`}>
-          <div className={`${negotiation ? 'scale-[0.75] -my-2' : 'scale-110'}`}>
+        <div className={`flex justify-center items-center ${negotiation ? 'mb-0.5 min-h-[140px]' : 'mb-4 min-h-[180px]'}`}>
+          <div className={`${negotiation ? 'scale-[0.65] -my-4' : 'scale-110'}`}>
             <BottleImage brand={brand} bottle={bottle} />
           </div>
         </div>
 
         <div className={`flex flex-col ${highlightedSection === 'name_bottom' ? 'z-[200] relative shadow-[0_0_25px_rgba(255,255,255,0.2),inset_0_0_15px_rgba(255,255,255,0.1)] rounded-lg bg-white/5' : ''}`}>
           {/* Name Section - Moved Down */}
-          <div className={`text-center flex flex-col justify-center ${negotiation ? 'mb-1 mt-auto min-h-[2.5rem]' : 'mb-4 min-h-[5.5rem]'}`}>
+          <div className={`text-center flex flex-col justify-center ${negotiation ? 'mb-1 mt-auto min-h-[3rem]' : 'mb-4 min-h-[5.5rem]'}`}>
             <div className={`${negotiation ? 'text-xs' : 'text-base'} font-serif font-bold text-whiskey-gold leading-tight`}>
               {renderName()}
             </div>
@@ -681,10 +703,10 @@ export const BottleCard: React.FC<BottleCardProps> = ({
 };
 
 const Tag = ({ label, empty, glow, isScanning }: { label: string; empty?: boolean; glow?: 'success' | 'fail'; isScanning?: boolean; key?: string }) => (
-  <div className={`relative text-[9px] px-0.5 py-1 rounded border text-center font-bold uppercase whitespace-nowrap overflow-hidden min-h-[22px] flex items-center justify-center leading-[1.1] transition-colors duration-300 ${empty ? 'border-whiskey-light/40 text-whiskey-light/30 bg-whiskey-dark/50 border-dashed' : 'border-whiskey-light bg-whiskey-dark text-whiskey-gold shadow-sm'} ${isScanning ? 'border-whiskey-gold/60 bg-whiskey-dark/80' : ''}`}>
-    <AutoScalingText maxFontSize={9} minFontSize={4} className="w-full px-0.5">
+  <div className={`relative text-[8px] px-1 py-1 rounded border text-center font-bold uppercase overflow-hidden min-h-[24px] flex items-center justify-center leading-[1.1] transition-colors duration-300 ${empty ? 'border-whiskey-light/40 text-whiskey-light/30 bg-whiskey-dark/50 border-dashed' : 'border-whiskey-light bg-whiskey-dark text-whiskey-gold shadow-sm'} ${isScanning ? 'border-whiskey-gold/60 bg-whiskey-dark/80' : ''}`}>
+    <span className="w-full line-clamp-2 break-words">
       {label || '\u00A0'}
-    </AutoScalingText>
+    </span>
     <AnimatePresence>
       {glow && (
         <motion.div 
@@ -707,12 +729,12 @@ const Tag = ({ label, empty, glow, isScanning }: { label: string; empty?: boolea
 );
 
 const StatCell = ({ label, value, compact, glow }: { label: string; value: string; compact?: boolean; glow?: 'success' | 'fail' }) => (
-  <div className={`relative flex flex-col items-center justify-center bg-whiskey-dark rounded-lg border border-whiskey-light overflow-hidden ${compact ? 'p-0.5' : 'p-2'}`}>
-    <span className={`${compact ? 'text-[6px]' : 'text-[10px]'} uppercase font-bold text-whiskey-amber opacity-60`}>{label}</span>
-    <div className="w-full flex items-center justify-center h-[20px]">
-      <AutoScalingText maxFontSize={compact ? 9 : 14} minFontSize={5} className="font-black text-whiskey-gold w-full text-center px-0.5">
+  <div className={`relative flex flex-col items-center justify-center bg-whiskey-dark rounded-lg border border-whiskey-light overflow-hidden ${compact ? 'p-0.5 min-h-[32px]' : 'p-1.5 min-h-[40px]'}`}>
+    <span className={`${compact ? 'text-[6px]' : 'text-[9px]'} uppercase font-bold text-whiskey-amber opacity-60`}>{label}</span>
+    <div className="w-full flex items-center justify-center flex-1">
+      <span className={`font-black text-whiskey-gold w-full text-center px-0.5 truncate leading-tight ${compact ? 'text-[10px]' : 'text-sm'}`}>
         {value}
-      </AutoScalingText>
+      </span>
     </div>
     <AnimatePresence>
       {glow && (
